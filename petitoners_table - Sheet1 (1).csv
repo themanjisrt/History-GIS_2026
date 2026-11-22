@@ -1,0 +1,53 @@
+decree_id,petitioner_name,petitioner_title,petitioner_gender,complaint_subject,month,year
+1,Sheik Yahya,Sheik,male,desolation,M,1059
+2,Ayse Hatun,Subject,woman,homicide,M,1059
+5,Rıdvan,Subject,male,land dispute,M,1059
+6,Hristo,Non-muslim subject,male,harassment,M,1059
+7,Hasan Pasha,Vizier,male,embezzlement,M,1059
+8,Mos,Non-muslim subject,male,debt dispute,M,1059
+9,Kenan Pasha,Vizier,male,revenue dispute,M,1059
+10,Halil,Sanjak Alaybegi,male,misconduct,M,1059
+11,Abdülkerim,Kadi,male,illegal taxation,M,1059
+12,null,Janissary,male,runaway slaves,M,1059
+14,Seyyid Çelebi,Seyyid,male,encroachment on waqf water,M,1059
+15,Yerlü olanlar (Aksaray Ahalisi),Subject,group,refusal to pay customary sheep pasturage fee,M,1059
+16,Karapınar Evkafı Reayası,Subject,group,oppression/misconduct by waqf trustee Bekir,M,1059
+17,Halil,Janissary/Waqf Trustee,male,refusal of Janissaries Sefer and Piyale to pay debt owed to waqf fund,M,1059
+18,Mümine,Subject,female,fraudulent/underpriced sale of real estate by attorney and unlawful retention of property,M,1059
+19,null,Tobcı Başı,male,unlawful imprisonment of a gunner in Boğazhisar castle and demand for transfer to Istanbul,M,1059
+20,Gölbazarı Kazası Ahalisi,Subject,group,"oppression, extortion, and excessive illegal fees charged by Kadi Ahmed",M,1059
+21,Halil bin Fethullah & Emrullah bin Şükrullah,Customs Weighmaster / Kapandâr,male,request for decree to collect customary 4 akçe customs fee per unit and prevent interference,M,1059
+22,null,Subject,group,assault and extortion of illegal fees from shopkeepers and bakers by the market inspector (bazar başı),M,1059
+23,Havas-ı Mahmud Paşa Kadısı,Kadi,male,jurisdictional dispute over legal cases of non-local resident peasants (hariç reaya),M,1059
+24,Mustafa Safa,Former Chief Accountant (Sabıkan Baş Muhasebeci),male,"property damage from neighbor's construction, water/drainage dispute, and extortion of repair fees",M,1059
+25,Fatma Hatun,Subject,female,non-payment of mahr upon divorce and unlawful seizure of personal property by ex-husband,M,1059
+27,Rumeli Eyaleti Züamâ ve Erbab-ı Tımarı,Zaim / Timar Holder,group,"collection and reimbursement of shared campaign expenses and loans (6,330 guruş)",M,1059
+28,Mehmed,Kapu Kethüdası,male,request for sale of soap from one ship in Midilli at official rate and dispatch of remaining two ships to Istanbul,M,1059
+29,Ismail,Mütesellim,male,dispute over mutasallim appointment after previous officer's death and demand to enforce control via official deed (temessük),M,1059
+30,Mustafa,Çorbacı,male,"refusal of Osman Beyoğlu Ahmed in Yenişehir to pay a debt of 2,200 guruş",M,1059
+31,People of Yorgi Castle,Subject,group,Resettlement,M,1059
+32,Residents of Tatarpazarı,Kadi / Çavuş / Subject,group,Tax Obstruction,M,1059
+33,Ali,Subject,male,Inheritance,M,1059
+34,Serdar Hüseyin Paşa,Serdar,male,Troop Supply,M,1059
+35,Ali,Subject,male,Revenue Collection,M,1059
+36,Ahmed Kapudan,Kalyon Kapudanı,male,Confiscation,M,1059
+37,Tire Eşraf ve Fukahası,Subject,group,Extortion,M,1059
+38,Vezir Mehmed Paşa,Vizier,male,Property Purchase,M,1059
+39,Mehmed,Usta,male,Nonpayment,M,1059
+40,Mehmed,Usta,male,Nonpayment,M,1059
+41,Mustafa,Subject,male,debt dispute,M,1059
+42,Bilecik Naibi ve Ahalisi,Deputy judge / Subject,group,Extortion,M,1059
+43,Seydişehri Ahalisi,Subject,group,Extortion,M,1059
+44,Mevlana Halil (Sabık Çal Kadısı) ve Kadılar,Kadi,male,Confiscation,M,1059
+45,Mehmed,Messenger / legal guardian,male,Nonpayment,M,1059
+46,Mehmed,Janissary,male,Appointment,M,1059
+47,Hoyran Deputy Judge Mevlana Mustafa and subjects,Naib / Subject,group,Extortion,M,1059
+48,Hasan,Janissary,male,Appointment,M,1059
+49,Mustafa,Trustee,male,Appointment,M,1059
+50,Subjects of Kars Province,Subject,group,Resettlement,M,1059
+51,Preachers and Muezzins of Edincik,Preachers and Muezzins,group,Property,M,1059
+52,Shield-maker ,Artisan,male,Debt,M,1059
+53,Inhabitants of Rahova Village,Subjects ,group,Extortion,M,1059
+54,Creditors,Creditor / Subject,group,Debt,M,1059
+55,Stipendiaries of Gazi Murad Pasha Waqf,Waqf Beneficiaries / Stipend Holders,group,Property,M,1059
+56,Ramazan,Commander,male,Debt,M,1059

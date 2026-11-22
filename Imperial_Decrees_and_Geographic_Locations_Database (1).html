@@ -1,0 +1,2938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="dashboard">
+  <meta name="design-style" content="briefing">
+  <title>Ottoman Imperial Decrees — Spatial Density &amp; Regional Connectivity Dashboard (1649)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces: warm stone-white paper (Briefing) */
+      --background: #faf9f5;
+      --surface-container-low: #ffffff;
+      --surface-container: #f1efe8;
+      --surface-container-high: #e6e2d6;
+
+      /* Ink */
+      --on-surface: #17181a;
+      --on-surface-variant: #56585c;
+
+      /* Rules */
+      --outline: #17181a;
+      --outline-variant: #dedad0;
+      --border-control: #c8c4b8;
+
+      /* Accents */
+      --primary: #17181a;
+      --on-primary: #faf9f5;
+      --primary-container: #f2b705;
+      --on-primary-container: #17181a;
+      --secondary: #1f4e5f;
+      --secondary-soft: #e6eff2;
+      --tertiary: #785008;
+      --tag-warm-bg: #f5e6c4;
+      --error: #b42318;
+      --on-error: #ffffff;
+
+      /* Semantic */
+      --positive: #2b6e52;
+      --positive-soft: #e5f0eb;
+      --warning: #b85d19;
+      --warning-soft: #faeadd;
+
+      /* Map cartography tokens */
+      --map-ocean: #dce6ec;
+      --map-land: #efe9dc;
+      --map-land-border: #bfb6a3;
+      --map-graticule: #c7d2d9;
+      --map-arc: #1f4e5f;
+      --map-hotspot-ring: #b84a39;
+      --heat-low: rgba(242, 183, 5, 0.25);
+      --heat-mid: rgba(217, 119, 6, 0.52);
+      --heat-high: rgba(184, 74, 57, 0.84);
+
+      /* Data series */
+      --data-1: #1f4e5f;
+      --data-2: #d99000;
+      --data-3: #2b6e52;
+      --data-4: #b84a39;
+      --data-5: #5a4b81;
+      --data-context: #c4bfb2;
+
+      /* Fonts */
+      --font-headline: 'Source Serif 4', serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-label: 'Geist Mono', monospace;
+
+      /* Shape */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.375rem;
+      --rounded-full: 0.25rem;
+      --badge-radius: 2px;
+
+      /* Style effects */
+      --section-rule: 1.5px solid var(--outline);
+      --card-border: 1px solid var(--outline-variant);
+      --table-row-border: 1px solid var(--outline-variant);
+      --heading-tracking: -0.02em;
+      --label-tracking: 0.08em;
+      --focus-ring: 0 0 0 3px var(--primary-container);
+
+      /* Type scale (Dashboard) */
+      --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.35rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+      --micro-size: 0.6875rem;
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1320px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Focus accessibility */
+    :focus-visible {
+      outline: 2px solid var(--secondary);
+      outline-offset: 2px;
+    }
+
+    /* Dossier Header & Masthead */
+    .dossier-header {
+      padding-bottom: var(--space-md);
+      border-bottom: var(--section-rule);
+    }
+    .dossier-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+    .dossier-bar-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .dossier-pill {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: var(--micro-size);
+      letter-spacing: var(--label-tracking);
+      text-transform: uppercase;
+      padding: 0.22rem 0.55rem;
+      border-radius: var(--badge-radius);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .dossier-meta {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--display-size);
+      letter-spacing: var(--heading-tracking);
+      line-height: 1.08;
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .standfirst {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      color: var(--secondary);
+      margin: var(--space-sm) 0 0;
+      max-width: 78ch;
+      line-height: 1.45;
+    }
+
+    /* Section Bars */
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-xs);
+      margin-bottom: var(--space-md);
+    }
+    .section-head-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .index-num {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      color: var(--secondary);
+      background: var(--surface-container);
+      padding: 0.15rem 0.4rem;
+      border-radius: var(--badge-radius);
+    }
+    .section-title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--headline-size);
+      letter-spacing: var(--heading-tracking);
+      color: var(--on-surface);
+      margin: 0;
+      line-height: 1.2;
+    }
+    .section-sub {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Figure Cards */
+    .figure-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+    }
+
+    /* Filter Control Deck */
+    .controls-deck {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-md);
+    }
+    .hotspot-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-md);
+      border-bottom: var(--card-border);
+    }
+    .strip-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+      margin-right: var(--space-xs);
+    }
+    .chip-btn {
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      font-weight: 600;
+      min-height: 44px;
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--border-control);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .chip-btn:hover {
+      background: var(--surface-container);
+    }
+    .chip-btn[aria-pressed="true"] {
+      background: var(--primary);
+      color: var(--on-primary);
+      box-shadow: inset 0 -3px 0 var(--primary-container);
+    }
+    .chip-count {
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      opacity: 0.8;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+      gap: var(--space-md);
+      align-items: end;
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .field-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+    }
+    .control-select,
+    .control-input {
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      font-weight: 500;
+      color: var(--on-surface);
+      background: var(--surface-container-low);
+      border: 1px solid var(--border-control);
+      border-radius: var(--rounded);
+      min-height: 44px;
+      padding: 0.5rem 0.75rem;
+      width: 100%;
+      transition: box-shadow var(--dur-micro) var(--ease-out),
+                  background-color var(--dur-micro) var(--ease-out);
+    }
+    .control-select {
+      padding-right: 2rem;
+    }
+    .control-select:hover,
+    .control-input:hover {
+      background: var(--background);
+    }
+    .btn-primary {
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      font-weight: 600;
+      min-height: 44px;
+      padding: 0.5rem 1rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: var(--on-primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  opacity var(--dur-micro) var(--ease-out);
+    }
+    .btn-primary:hover {
+      background: var(--secondary);
+    }
+    .btn-secondary {
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      font-weight: 600;
+      min-height: 44px;
+      padding: 0.5rem 1rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--border-control);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--surface-container);
+    }
+    .btn-secondary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* KPI Strip */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+    .kpi-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      border-top: 3px solid var(--secondary);
+    }
+    .kpi-card--gold {
+      border-top-color: var(--primary-container);
+    }
+    .kpi-card--pine {
+      border-top-color: var(--positive);
+    }
+    .kpi-card--brick {
+      border-top-color: var(--data-4);
+    }
+    .kpi-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+    }
+    .kpi-value {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: clamp(1.65rem, 1.35rem + 0.9vw, 2.25rem);
+      line-height: 1.1;
+      color: var(--on-surface);
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    .kpi-sub {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      line-height: 1.35;
+    }
+
+    /* Primary Workspace: GIS Map + Inspector */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: stretch;
+    }
+    .map-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .map-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .layer-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .toggle-pill {
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-height: 44px;
+      padding: 0.35rem 0.7rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--border-control);
+      background: var(--surface-container-low);
+      color: var(--on-surface-variant);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+    }
+    .toggle-pill:hover {
+      background: var(--surface-container);
+    }
+    .toggle-pill[aria-pressed="true"] {
+      background: var(--secondary);
+      color: var(--on-primary);
+      border-color: var(--secondary);
+    }
+
+    .map-wrap {
+      position: relative;
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      overflow: hidden;
+      background: var(--map-ocean);
+    }
+    #gis-map {
+      height: 540px;
+      min-height: 500px;
+      width: 100%;
+      background: var(--map-ocean);
+    }
+    .leaflet-container {
+      background: var(--map-ocean);
+      font-family: var(--font-body);
+    }
+    .map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding-top: var(--space-sm);
+      border-top: var(--card-border);
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      color: var(--on-surface-variant);
+    }
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1px solid var(--on-surface);
+    }
+    .swatch-heat {
+      width: 56px;
+      height: 10px;
+      border-radius: var(--badge-radius);
+      background: linear-gradient(90deg, var(--heat-low), var(--heat-mid), var(--heat-high));
+      border: 1px solid var(--outline-variant);
+      display: inline-block;
+    }
+    .swatch-ist { background: var(--primary-container); }
+    .swatch-extortion { background: var(--data-4); }
+    .swatch-debt { background: var(--data-2); }
+    .swatch-property { background: var(--data-3); }
+    .swatch-revenue { background: var(--data-1); }
+    .swatch-troop { background: var(--data-5); }
+
+    /* Inspector Sidebar */
+    .inspector-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .inspector-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-sm);
+    }
+    .inspector-kicker {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 600;
+      color: var(--secondary);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+    }
+    .inspector-nav {
+      display: flex;
+      gap: var(--space-xs);
+    }
+    .nav-icon-btn {
+      min-width: 44px;
+      min-height: 44px;
+      border: 1px solid var(--border-control);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border-radius: var(--rounded);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .nav-icon-btn:hover:not(:disabled) {
+      background: var(--surface-container);
+    }
+    .nav-icon-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .dossier-card-title {
+      font-family: var(--font-headline);
+      font-size: var(--headline-size);
+      font-weight: 600;
+      margin: 0;
+      line-height: 1.2;
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-top: var(--space-xs);
+    }
+    .badge {
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.45rem;
+      border-radius: var(--badge-radius);
+      display: inline-block;
+    }
+    .badge-warm {
+      background: var(--tag-warm-bg);
+      color: var(--tertiary);
+    }
+    .badge-slate {
+      background: var(--secondary-soft);
+      color: var(--secondary);
+    }
+    .badge-pine {
+      background: var(--positive-soft);
+      color: var(--positive);
+    }
+    .badge-gold {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+    .badge-warn {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+    .dossier-dl {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--space-sm) var(--space-md);
+      margin: var(--space-md) 0;
+      padding: var(--space-md) 0;
+      border-top: var(--card-border);
+      border-bottom: var(--card-border);
+    }
+    .dl-item dt {
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .dl-item dd {
+      margin: 0.15rem 0 0;
+      font-weight: 600;
+      color: var(--on-surface);
+      font-size: 0.9375rem;
+    }
+    .subject-quote {
+      background: var(--surface-container);
+      border-left: 3px solid var(--secondary);
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .receiver-chain {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-top: var(--space-xs);
+    }
+    .hotspot-summary-box {
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      padding: var(--space-md);
+      font-size: 0.875rem;
+      color: var(--on-surface);
+    }
+    .hotspot-summary-box strong {
+      font-family: var(--font-headline);
+      font-size: 1rem;
+    }
+
+    /* Charts 2x2 Grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .chart-card {
+      container-type: inline-size;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .chart-title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .chart-caption {
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      color: var(--on-surface-variant);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.15rem;
+    }
+    .chart-box {
+      position: relative;
+      height: 290px;
+      min-height: 280px;
+      width: 100%;
+    }
+    .chart-insight {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      border-top: var(--card-border);
+      padding-top: var(--space-sm);
+      margin: 0;
+    }
+
+    /* Master Table */
+    .table-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+    .search-wrap {
+      flex: 1 1 280px;
+      max-width: 440px;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      border-top: var(--section-rule);
+    }
+    table.decree-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .decree-table thead th {
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--on-surface);
+      background: var(--surface-container);
+      border-bottom: var(--section-rule);
+      text-align: left;
+      padding: 0.65rem 0.75rem;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .sort-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      text-transform: inherit;
+      letter-spacing: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      min-height: 32px;
+    }
+    .decree-table tbody tr {
+      border-bottom: var(--table-row-border);
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .decree-table tbody tr:hover {
+      background: var(--surface-container);
+    }
+    .decree-table tbody tr.is-selected {
+      background: var(--secondary-soft);
+    }
+    .decree-table td {
+      padding: 0.65rem 0.75rem;
+      vertical-align: top;
+    }
+    .mono-num {
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .empty-state {
+      text-align: center;
+      padding: var(--space-xl) var(--space-md);
+      background: var(--surface-container);
+      border-radius: var(--rounded);
+      margin-top: var(--space-md);
+    }
+
+    /* Methodology Aside Band */
+    .aside-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .aside-box {
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .aside-box h3 {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      margin: 0 0 var(--space-xs);
+    }
+    .aside-box p {
+      font-size: 0.9rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+      line-height: 1.55;
+    }
+
+    .footer-credits {
+      border-top: var(--card-border);
+      padding-top: var(--space-md);
+      font-family: var(--font-label);
+      font-size: var(--micro-size);
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    /* Leaflet custom tooltip */
+    .ottoman-tooltip {
+      background: var(--on-surface);
+      color: var(--on-primary);
+      border: 1px solid var(--primary-container);
+      border-radius: var(--rounded);
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      padding: 0.45rem 0.65rem;
+      box-shadow: none;
+    }
+    .ottoman-tooltip::before {
+      border-top-color: var(--on-surface);
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1024px) {
+      .workspace-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .filter-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .charts-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .aside-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-sm);
+        gap: var(--space-md);
+      }
+      .figure-card {
+        padding: var(--space-md);
+      }
+      .filter-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .kpi-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      #gis-map {
+        height: 400px;
+        min-height: 400px;
+      }
+      .dossier-dl {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-grid">
+    <!-- MASTHEAD -->
+    <header class="dossier-header">
+      <div class="dossier-bar">
+        <div class="dossier-bar-left">
+          <span class="dossier-pill">HGIS Dossier</span>
+          <span class="dossier-meta">BOA 1 Numaralı Şikâyet Defteri · Muharrem H. 1059 (Jan–Feb 1649)</span>
+        </div>
+        <span class="dossier-meta">Decrees 1–45 Folio Slice · 39 Recorded Decrees · 49 Geocoded Sites</span>
+      </div>
+      <h1 class="title">Ottoman Imperial Decrees: Spatial Density &amp; Regional Connectivity</h1>
+      <p class="standfirst">
+        An interactive geographic information dashboard analyzing imperial complaint decrees dispatched from Istanbul’s Dîvân-ı Hümâyûn across the Balkans, Anatolia, the Aegean, and the Levant.
+      </p>
+    </header>
+
+    <!-- FILTER & HOTSPOT CONTROL DECK -->
+    <section class="figure-card controls-deck" aria-label="Filters and Regional Hotspots">
+      <div class="hotspot-strip" role="group" aria-label="Geographic Hotspot Focus">
+        <span class="strip-label">Geographic Hotspots</span>
+        <button type="button" class="chip-btn" data-hotspot="all" aria-pressed="true" onclick="setHotspot('all')">
+          All Empire <span class="chip-count" id="hs-count-all">39</span>
+        </button>
+        <button type="button" class="chip-btn" data-hotspot="Edirne" aria-pressed="false" onclick="setHotspot('Edirne')">
+          Edirne <span class="chip-count" id="hs-count-Edirne">4</span>
+        </button>
+        <button type="button" class="chip-btn" data-hotspot="Bursa" aria-pressed="false" onclick="setHotspot('Bursa')">
+          Bursa <span class="chip-count" id="hs-count-Bursa">3</span>
+        </button>
+        <button type="button" class="chip-btn" data-hotspot="İzmir" aria-pressed="false" onclick="setHotspot('İzmir')">
+          İzmir &amp; Aydın <span class="chip-count" id="hs-count-İzmir">5</span>
+        </button>
+        <button type="button" class="chip-btn" data-hotspot="Kütahya" aria-pressed="false" onclick="setHotspot('Kütahya')">
+          Kütahya &amp; Eskişehir <span class="chip-count" id="hs-count-Kütahya">5</span>
+        </button>
+        <button type="button" class="chip-btn" data-hotspot="Boğazhisar" aria-pressed="false" onclick="setHotspot('Boğazhisar')">
+          Boğazhisar <span class="chip-count" id="hs-count-Boğazhisar">3</span>
+        </button>
+        <button type="button" class="chip-btn" data-hotspot="Haleb" aria-pressed="false" onclick="setHotspot('Haleb')">
+          Haleb <span class="chip-count" id="hs-count-Haleb">2</span>
+        </button>
+      </div>
+
+      <div class="filter-row">
+        <div class="field-group">
+          <label class="field-label" for="filter-category">Complaint Category</label>
+          <select id="filter-category" class="control-select" onchange="applyFilters()">
+            <option value="all">All Categories (39)</option>
+            <option value="Extortion">Extortion &amp; Oppression</option>
+            <option value="Debt">Debt &amp; Nonpayment</option>
+            <option value="Property">Property, Land &amp; Waqf</option>
+            <option value="Revenue">Revenue &amp; Taxation</option>
+            <option value="Troop Supply">Troop Supply &amp; Military</option>
+            <option value="Governance">Governance &amp; Criminal</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filter-gender">Petitioner Gender</label>
+          <select id="filter-gender" class="control-select" onchange="applyFilters()">
+            <option value="all">All Genders / Collectives</option>
+            <option value="Male">Male Petitioners</option>
+            <option value="Female">Female Petitioners</option>
+            <option value="Group">Collective / Community Groups</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filter-title">Petitioner Legal Title</label>
+          <select id="filter-title" class="control-select" onchange="applyFilters()">
+            <option value="all">All Legal Statuses</option>
+            <option value="Subject">Subject (Reaya)</option>
+            <option value="Non-Muslim Subject">Non-Muslim Subject (Zımmi)</option>
+            <option value="Military & Timar">Military &amp; Timar Corps</option>
+            <option value="Judicial & Official">Judicial &amp; State Officials</option>
+            <option value="Religious & Artisan">Religious &amp; Guild Artisans</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filter-distance">Connectivity Band (to Istanbul)</label>
+          <select id="filter-distance" class="control-select" onchange="applyFilters()">
+            <option value="all">All Imperial Distances</option>
+            <option value="core">Imperial Core (&le; 150 km)</option>
+            <option value="corridor">Marmara–Rumeli Trunk (151–350 km)</option>
+            <option value="regional">Aegean &amp; Anatolian Interior (351–750 km)</option>
+            <option value="frontier">Distant Frontier (&gt; 750 km)</option>
+          </select>
+        </div>
+
+        <button type="button" class="btn-secondary" onclick="resetAllFilters()">
+          <i data-lucide="rotate-ccw" width="16" height="16" aria-hidden="true"></i>
+          Reset
+        </button>
+      </div>
+    </section>
+
+    <!-- KPI HERO STRIP -->
+    <section class="kpi-grid" aria-label="Key Spatial and Demographic Metrics">
+      <article class="figure-card kpi-card">
+        <span class="kpi-label">01 · Active Decrees</span>
+        <span class="kpi-value" id="kpi-decrees">39</span>
+        <span class="kpi-sub" id="kpi-decrees-sub">49 geocoded dispatch points plotted</span>
+      </article>
+
+      <article class="figure-card kpi-card kpi-card--gold">
+        <span class="kpi-label">02 · Median Distance to Istanbul</span>
+        <span class="kpi-value" id="kpi-median-dist">237 km</span>
+        <span class="kpi-sub" id="kpi-dist-range">Range: 0 km (Mahrusa) – 1,611 km (Baghdad)</span>
+      </article>
+
+      <article class="figure-card kpi-card kpi-card--pine">
+        <span class="kpi-label">03 · Subject &amp; Collective Access</span>
+        <span class="kpi-value" id="kpi-subject-share">69%</span>
+        <span class="kpi-sub" id="kpi-subject-sub">Reaya, non-Muslims, women &amp; guild/local groups</span>
+      </article>
+
+      <article class="figure-card kpi-card kpi-card--brick">
+        <span class="kpi-label">04 · Primary Judicial Receiver</span>
+        <span class="kpi-value" id="kpi-receiver-top">Kadi (69%)</span>
+        <span class="kpi-sub" id="kpi-receiver-sub">47 of 68 imperial orders addressed to judges</span>
+      </article>
+    </section>
+
+    <!-- PRIMARY GIS MAP + ADJACENT DECREE DOSSIER INSPECTOR -->
+    <section aria-label="Interactive GIS Map and Decree Inspector">
+      <div class="section-head">
+        <div class="section-head-title">
+          <span class="index-num">MAP</span>
+          <h2 class="section-title">Spatial Density Heatmap &amp; Imperial Dispatch Network</h2>
+        </div>
+        <span class="section-sub" id="map-status-readout">Showing 49 geocoded nodes across 38 mapped decrees</span>
+      </div>
+
+      <div class="workspace-grid">
+        <!-- GIS Map Panel -->
+        <div class="figure-card map-panel">
+          <div class="map-toolbar">
+            <div class="layer-toggles" role="group" aria-label="Map Layers">
+              <button type="button" class="toggle-pill" id="btn-layer-heat" aria-pressed="true" onclick="toggleLayer('heat')">
+                Density Heatmap
+              </button>
+              <button type="button" class="toggle-pill" id="btn-layer-arcs" aria-pressed="true" onclick="toggleLayer('arcs')">
+                Istanbul Corridors
+              </button>
+              <button type="button" class="toggle-pill" id="btn-layer-nodes" aria-pressed="true" onclick="toggleLayer('nodes')">
+                Decree Nodes
+              </button>
+              <button type="button" class="toggle-pill" id="btn-layer-rings" aria-pressed="false" onclick="toggleLayer('rings')">
+                Distance Rings
+              </button>
+            </div>
+
+            <button type="button" class="btn-secondary" onclick="fitMapToActive()">
+              <i data-lucide="maximize-2" width="15" height="15" aria-hidden="true"></i>
+              Fit View
+            </button>
+          </div>
+
+          <div class="map-wrap">
+            <div id="gis-map" role="region" aria-label="Geographic map of Ottoman Imperial Decrees"></div>
+          </div>
+
+          <div class="map-legend">
+            <div class="legend-items">
+              <span class="legend-item"><span class="swatch swatch-ist"></span> Istanbul (Dîvân)</span>
+              <span class="legend-item"><span class="swatch-heat"></span> Kernel Density</span>
+              <span class="legend-item"><span class="swatch swatch-extortion"></span> Extortion</span>
+              <span class="legend-item"><span class="swatch swatch-debt"></span> Debt</span>
+              <span class="legend-item"><span class="swatch swatch-property"></span> Property</span>
+              <span class="legend-item"><span class="swatch swatch-revenue"></span> Revenue</span>
+              <span class="legend-item"><span class="swatch swatch-troop"></span> Troop Supply</span>
+            </div>
+            <span>Click any node to inspect archival decree</span>
+          </div>
+        </div>
+
+        <!-- Adjacent Dossier Inspector -->
+        <aside class="figure-card inspector-panel" aria-label="Selected Decree Dossier">
+          <div>
+            <div class="inspector-header">
+              <span class="inspector-kicker" id="inspector-kicker">Decree Dossier · #1</span>
+              <div class="inspector-nav">
+                <button type="button" class="nav-icon-btn" id="btn-prev-decree" aria-label="Previous filtered decree" onclick="stepDecree(-1)">
+                  <i data-lucide="chevron-left" width="18" height="18" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="nav-icon-btn" id="btn-next-decree" aria-label="Next filtered decree" onclick="stepDecree(1)">
+                  <i data-lucide="chevron-right" width="18" height="18" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="inspector-body" style="margin-top: var(--space-md);">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <div class="hotspot-summary-box" id="hotspot-context-box">
+            <strong>Empire-Wide Connectivity View</strong><br>
+            Select a hotspot chip above or click any point on the map to examine local petition concentration, distance from Istanbul, and judicial dispatch chains.
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ANALYTICAL CHARTS SECTION -->
+    <section aria-label="Regional and Demographic Breakdown">
+      <div class="section-head">
+        <div class="section-head-title">
+          <span class="index-num">ANALYSIS</span>
+          <h2 class="section-title">Disaggregated Complaint Patterns &amp; Distance Decay</h2>
+        </div>
+        <span class="section-sub">All charts update dynamically with active filters</span>
+      </div>
+
+      <div class="charts-grid">
+        <!-- Chart 01 -->
+        <article class="figure-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">01 · Complaint Categories Across Regional Hotspots</h3>
+              <div class="chart-caption">Count of filtered decrees by category</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-categories"></canvas>
+          </div>
+          <p class="chart-insight" id="insight-categories">
+            Revenue disputes and extortion/debt cases together represent over two-thirds of the opening 1649 folio slice.
+          </p>
+        </article>
+
+        <!-- Chart 02 -->
+        <article class="figure-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">02 · Petitioner Disaggregation: Gender &amp; Legal Title</h3>
+              <div class="chart-caption">Legal agency across subjects, collectives &amp; officials</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-demographics"></canvas>
+          </div>
+          <p class="chart-insight" id="insight-demographics">
+            Subjects (reaya) and collective community petitions account for a high share of direct appeals, alongside female petitioners in property, mahr, and homicide cases.
+          </p>
+        </article>
+
+        <!-- Chart 03 -->
+        <article class="figure-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">03 · Connectivity to Istanbul: Distance Decay vs. Petitioner Tier</h3>
+              <div class="chart-caption">Great-circle km from Istanbul (X) by legal group (Y)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-connectivity"></canvas>
+          </div>
+          <p class="chart-insight" id="insight-connectivity">
+            Female and artisan petitioners cluster within ~250 km along the Marmara–Edirne–Boğazhisar corridor, while distant provinces (&gt;800 km) shift toward officials and collective trade/supply decrees.
+          </p>
+        </article>
+
+        <!-- Chart 04 -->
+        <article class="figure-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">04 · Bureaucratic Dispatch Chain (Imperial Receivers)</h3>
+              <div class="chart-caption">Recipient officials recorded in receiver_table (n = 68)</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-receivers"></canvas>
+          </div>
+          <p class="chart-insight" id="insight-receivers">
+            Provincial kadis and mollas act as the primary judicial conduits of imperial authority, frequently paired with pashas, beylerbeyis, and janissary serdars for enforcement.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- MASTER DECREE TABLE -->
+    <section class="figure-card" aria-label="Searchable Decree Registry">
+      <div class="section-head">
+        <div class="section-head-title">
+          <span class="index-num">INDEX</span>
+          <h2 class="section-title">Master Decree Registry (Folio Decrees 1–43)</h2>
+        </div>
+        <span class="section-sub" id="table-count-label">39 matching records</span>
+      </div>
+
+      <div class="table-controls">
+        <div class="field-group search-wrap">
+          <label class="field-label" for="table-search">Search Decrees, Petitioners, or Places</label>
+          <input id="table-search" type="search" class="control-input" placeholder="e.g. Ayse Hatun, Boğazhisar, waqf, 2,200 guruş…" oninput="applyFilters()">
+        </div>
+        <span class="dossier-meta">Click any row to highlight on map &amp; inspect dossier</span>
+      </div>
+
+      <div class="table-scroll">
+        <table class="decree-table">
+          <thead>
+            <tr>
+              <th><button type="button" class="sort-btn" onclick="sortTable('id')">Decree #</button></th>
+              <th><button type="button" class="sort-btn" onclick="sortTable('location')">Origin / Target</button></th>
+              <th><button type="button" class="sort-btn" onclick="sortTable('distance')">Dist. (km)</button></th>
+              <th><button type="button" class="sort-btn" onclick="sortTable('petitioner')">Petitioner</button></th>
+              <th><button type="button" class="sort-btn" onclick="sortTable('title')">Legal Title</button></th>
+              <th><button type="button" class="sort-btn" onclick="sortTable('gender')">Gender</button></th>
+              <th><button type="button" class="sort-btn" onclick="sortTable('category')">Category</button></th>
+              <th>Complaint Subject &amp; Receivers</th>
+            </tr>
+          </thead>
+          <tbody id="decree-tbody">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+      <div id="table-empty" class="empty-state" hidden>
+        <p style="margin: 0 0 var(--space-sm);"><strong>No decrees match the active filter combination.</strong></p>
+        <p style="margin: 0 0 var(--space-md); color: var(--on-surface-variant);">Try clearing one of the category, gender, or hotspot constraints to restore records.</p>
+        <button type="button" class="btn-primary" onclick="resetAllFilters()">Reset All Filters</button>
+      </div>
+    </section>
+
+    <!-- ARCHIVAL METHODOLOGY & ADMINISTRATIVE CONTEXT -->
+    <section aria-label="Archival Methodology and Ottoman Territorial Framework">
+      <div class="section-head">
+        <div class="section-head-title">
+          <span class="index-num">NOTES</span>
+          <h2 class="section-title">Archival Methodology &amp; Territorial Framework</h2>
+        </div>
+        <span class="section-sub">Historical GIS Grounding</span>
+      </div>
+
+      <div class="aside-grid">
+        <article class="aside-box">
+          <h3>The 1649 Şikâyet Defterleri Split</h3>
+          <p>
+            In 1649 (H. 1059), the Ottoman imperial chancery separated petition-driven decrees from the general <em>Mühimme Defterleri</em>, creating the dedicated <em>Şikâyet Defterleri</em> series. Register No. 1 contains 860 decrees across the empire; this dashboard examines the opening 1–45 folio slice (39 recorded decrees, 49 geocoded sites).
+          </p>
+        </article>
+
+        <article class="aside-box">
+          <h3>Toponymic Normalization</h3>
+          <p>
+            Ottoman provincial administration nested <em>nahiye</em> and <em>kaza</em> districts under <em>sancak</em> (<em>liva</em>) and <em>eyalet</em> provinces. Multi-site decrees—such as Haleb–Kilis–Azez (Decrees 1, 34) and İzmir–Manisa–Kütahya–Aydın (Decree 35)—are standardized using <em>Kaynaklarıyla Osmanlı Coğrafyası Yer Adları Sözlüğü</em>.
+          </p>
+        </article>
+
+        <article class="aside-box">
+          <h3>Practical Agency &amp; Global Historiography</h3>
+          <p>
+            While theoretical law granted every subject—Muslim or non-Muslim, woman or villager—the right to petition Istanbul, spatial mapping tests practical access. Notice how Decrees 3, 4, 13, 26, 44, and 45 are absent from this excerpted sheet, and Decree 43 (Seydişehri) lacks a geocoded row in the exported locations slice.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer-credits">
+      <span>Primary Sources: BOA 1 Numaralı Şikâyet Defteri (H. 1059 / 1649); Kaynaklarıyla Osmanlı Coğrafyası Yer Adları Sözlüğü; Relational Tables (petitioners_table, locations_table, receiver_table).</span>
+      <span>Vector Basemap: Natural Earth 50m (public domain) · Great-circle distance computed from Istanbul (41.0082°N, 28.9784°E).</span>
+    </footer>
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. SOURCE DATASET (GROUNDED IN DECREES 1-45 EXCERPTS)
+    // =========================================================================
+    const ISTANBUL = { name: `Istanbul (Dîvân-ı Hümâyûn)`, lat: 41.0082, lng: 28.9784 };
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const toRad = d => (d * Math.PI) / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    const HOTSPOT_META = {
+      all: {
+        label: `All Empire`,
+        center: [38.9, 31.2],
+        zoom: 5,
+        summary: `Full 1649 opening folio slice spanning 39 decrees (Decrees 1–43 present in sheet) and 49 geocoded sites from Sofya and Tatarpazarı to Haleb and Baghdad.`
+      },
+      Edirne: {
+        label: `Edirne`,
+        center: [41.25, 26.85],
+        zoom: 6,
+        summary: `Rumeli Menzil Gateway (188–235 km from Istanbul). 4 decrees (6 coordinate entries: Edirne, Meğri, Havsa) spanning homicide (Ayşe Hatun), artisan wage nonpayment (Usta Mehmed), and kadi jurisdictional disputes.`
+      },
+      Bursa: {
+        label: `Bursa`,
+        center: [40.35, 28.85],
+        zoom: 6,
+        summary: `Marmara Urban & Resettlement Hub (~92–114 km across the Sea of Marmara). 3 decrees covering a 2,200 guruş debt dispute, Yorgi Castle resettlement at Mihaliç, and inheritance litigation.`
+      },
+      'İzmir': {
+        label: `İzmir & Aydın`,
+        center: [38.35, 27.65],
+        zoom: 6,
+        summary: `Aegean Commercial & Tax Corridor (315–365 km). 5 decrees across İzmir, Tire, Menemen, Manisa, Aydın, and Güzelhisar involving revenue collection, extortion of local notables, and official misconduct.`
+      },
+      'Kütahya': {
+        label: `Kütahya & Eskişehir`,
+        center: [39.55, 30.15],
+        zoom: 6,
+        summary: `Anatolian Interior Trunk (170–225 km). 5 decrees across Kütahya, Eskişehir, Bilecik, and Karahisar addressing kadi extortion, waqf water encroachment, runaway slaves, and revenue collection.`
+      },
+      'Boğazhisar': {
+        label: `Boğazhisar`,
+        center: [40.25, 26.85],
+        zoom: 6,
+        summary: `Dardanelles Strait Fortress (~237 km). 3 decrees filed by a Tobcı Başı (imprisoned gunner), Fatma Hatun (unpaid divorce mahr & seized property), and a Galleon Captain (confiscation).`
+      },
+      Haleb: {
+        label: `Haleb`,
+        center: [36.45, 36.6],
+        zoom: 6,
+        summary: `Levantine Provincial Anchor (855–888 km). 2 multi-node decrees (6 dispatch coordinates across Haleb, Kilis, and Azez) covering provincial desolation under Sheik Yahya and Serdar Hüseyin Pasha's troop supply.`
+      }
+    };
+
+    const RAW_DECREES = [
+      {
+        id: 1,
+        petitioner: `Sheik Yahya`,
+        rawTitle: `Sheik`,
+        titleTier: `Religious & Artisan`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `desolation`,
+        category: `Governance`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Haleb`],
+        locations: [
+          { location_id: 1, location_name: `Haleb`, receiver_location: `Haleb`, lat: 36.206960, lng: 37.131759 },
+          { location_id: 2, location_name: `Haleb`, receiver_location: `Kilis`, lat: 36.716529, lng: 37.114378 },
+          { location_id: 3, location_name: `Haleb`, receiver_location: `Azez`, lat: 36.587947, lng: 37.047250 }
+        ],
+        receivers: [`Vizier`, `Kadi`, `Voivode`]
+      },
+      {
+        id: 2,
+        petitioner: `Ayse Hatun`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `woman`,
+        gender: `Female`,
+        subject: `homicide`,
+        category: `Governance`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Edirne`],
+        locations: [
+          { location_id: 4, location_name: `Edirne`, receiver_location: `Edirne`, lat: 41.677459, lng: 26.556157 },
+          { location_id: 5, location_name: `Edirne`, receiver_location: `Meğri`, lat: 40.854152, lng: 25.745879 },
+          { location_id: 6, location_name: `Edirne`, receiver_location: `Edirne`, lat: 41.677459, lng: 26.556157 }
+        ],
+        receivers: [`Kadi`, `Kadi`, `Chief of Imperial Gardeners`]
+      },
+      {
+        id: 5,
+        petitioner: `Rıdvan`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `land dispute`,
+        category: `Property`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 7, location_name: `Greece`, receiver_location: `Yenisehir`, lat: 39.639075, lng: 22.418422 },
+          { location_id: 8, location_name: `Greece`, receiver_location: `Izdin`, lat: 38.900563, lng: 22.432991 }
+        ],
+        receivers: [`Mullah`, `Kadi`]
+      },
+      {
+        id: 6,
+        petitioner: `Hristo`,
+        rawTitle: `Non-muslim subject`,
+        titleTier: `Non-Muslim Subject`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `harassment`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 9, location_name: `Bulgaria`, receiver_location: `Ahyolu`, lat: 42.568764, lng: 27.615192 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 7,
+        petitioner: `Hasan Pasha`,
+        rawTitle: `Vizier`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `embezzlement`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 10, location_name: `Greece`, receiver_location: `Tripolitsa`, lat: 37.5102953, lng: 22.37215099 }
+        ],
+        receivers: [`Vizier`, `Kadi`]
+      },
+      {
+        id: 8,
+        petitioner: `Mos`,
+        rawTitle: `Non-muslim subject`,
+        titleTier: `Non-Muslim Subject`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `debt dispute`,
+        category: `Debt`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 11, location_name: `Greece`, receiver_location: `Rhodes`, lat: 36.46198245, lng: 28.30356982 }
+        ],
+        receivers: [`Beg`, `Kadi`]
+      },
+      {
+        id: 9,
+        petitioner: `Kenan Pasha`,
+        rawTitle: `Vizier`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `revenue dispute`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`İzmir`],
+        locations: [
+          { location_id: 12, location_name: `Aydın`, receiver_location: `Tire`, lat: 38.08936222, lng: 27.73464023 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 10,
+        petitioner: `Halil`,
+        rawTitle: `Sanjak Alaybegi`,
+        titleTier: `Military & Timar`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `misconduct`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`İzmir`],
+        locations: [
+          { location_id: 13, location_name: `Aydın`, receiver_location: `Aydın`, lat: 37.83968216, lng: 27.84202985 }
+        ],
+        receivers: [`Mutasarrif`]
+      },
+      {
+        id: 11,
+        petitioner: `Abdülkerim`,
+        rawTitle: `Kadi`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `illegal taxation`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 14, location_name: `Trabzon`, receiver_location: `Trabzon`, lat: 41.01815445, lng: 39.96028486 }
+        ],
+        receivers: [`Beylerbeyi`]
+      },
+      {
+        id: 12,
+        petitioner: `Unnamed Janissary`,
+        rawTitle: `Janissary`,
+        titleTier: `Military & Timar`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `runaway slaves`,
+        category: `Governance`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Kütahya`],
+        locations: [
+          { location_id: 15, location_name: `Karahisar`, receiver_location: `Karahisar`, lat: 38.7569, lng: 30.5387 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 14,
+        petitioner: `Seyyid Çelebi`,
+        rawTitle: `Seyyid`,
+        titleTier: `Religious & Artisan`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `encroachment on waqf water`,
+        category: `Property`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Kütahya`],
+        locations: [
+          { location_id: 16, location_name: `Eskişehir`, receiver_location: `Eskişehir`, lat: 39.7767, lng: 30.5206 }
+        ],
+        receivers: [`Beg`, `Kadi`]
+      },
+      {
+        id: 15,
+        petitioner: `Yerlü olanlar (Aksaray Ahalisi)`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `refusal to pay customary sheep pasturage fee`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 17, location_name: `Aksaray`, receiver_location: `Aksaray`, lat: 38.3687, lng: 34.037 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 16,
+        petitioner: `Karapınar Evkafı Reayası`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `oppression/misconduct by waqf trustee Bekir`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 18, location_name: `Karapınar`, receiver_location: `Konya`, lat: 37.7167, lng: 33.5500 }
+        ],
+        receivers: [`Kadi`, `Janissary Serdar`]
+      },
+      {
+        id: 17,
+        petitioner: `Halil`,
+        rawTitle: `Janissary/Waqf Trustee`,
+        titleTier: `Military & Timar`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `refusal of Janissaries Sefer and Piyale to pay debt owed to waqf fund`,
+        category: `Debt`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 19, location_name: `Karapınar`, receiver_location: `Konya`, lat: 37.7167, lng: 33.5500 }
+        ],
+        receivers: [`Kadi`, `Janissary Serdar`]
+      },
+      {
+        id: 18,
+        petitioner: `Mümine`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `female`,
+        gender: `Female`,
+        subject: `fraudulent/underpriced sale of real estate by attorney and unlawful retention of property`,
+        category: `Property`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 20, location_name: `İznikmid`, receiver_location: `İznikmid`, lat: 40.7654, lng: 29.9408 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 19,
+        petitioner: `Unnamed Tobcı Başı`,
+        rawTitle: `Tobcı Başı`,
+        titleTier: `Military & Timar`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `unlawful imprisonment of a gunner in Boğazhisar castle and demand for transfer to Istanbul`,
+        category: `Troop Supply`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Boğazhisar`],
+        locations: [
+          { location_id: 21, location_name: `Çanakkale`, receiver_location: `Boğazhisar`, lat: 40.1490, lng: 26.4050 }
+        ],
+        receivers: [`Pasha`]
+      },
+      {
+        id: 20,
+        petitioner: `Gölbazarı Kazası Ahalisi`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `oppression, extortion, and excessive illegal fees charged by Kadi Ahmed`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Kütahya`],
+        locations: [
+          { location_id: 22, location_name: `Gölbazarı`, receiver_location: `Kütahya`, lat: 40.2828, lng: 30.3172 }
+        ],
+        receivers: [`Beylerbeyi`, `Kadi`]
+      },
+      {
+        id: 21,
+        petitioner: `Halil bin Fethullah & Emrullah bin Şükrullah`,
+        rawTitle: `Customs Weighmaster / Kapandâr`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `request for decree to collect customary 4 akçe customs fee per unit and prevent interference`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 23, location_name: `Baghdad`, receiver_location: `Baghdad`, lat: 33.3152, lng: 44.3661 }
+        ],
+        receivers: [`Pasha`, `Kadi`, `Defterdar`]
+      },
+      {
+        id: 22,
+        petitioner: `Unnamed Shopkeepers & Bakers`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `assault and extortion of illegal fees from shopkeepers and bakers by the market inspector (bazar başı)`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 24, location_name: `Çekmece`, receiver_location: `Haslar`, lat: 41.0208, lng: 28.5808 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 23,
+        petitioner: `Havas-ı Mahmud Paşa Kadısı`,
+        rawTitle: `Kadi`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `jurisdictional dispute over legal cases of non-local resident peasants (hariç reaya)`,
+        category: `Governance`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Edirne`],
+        locations: [
+          { location_id: 25, location_name: `Havas-ı Mahmud Paşa`, receiver_location: `Havsa`, lat: 41.5489, lng: 26.8214 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 24,
+        petitioner: `Mustafa Safa`,
+        rawTitle: `Former Chief Accountant (Sabıkan Baş Muhasebeci)`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `property damage from neighbor's construction, water/drainage dispute, and extortion of repair fees`,
+        category: `Property`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 26, location_name: `Mahrusa (İstanbul)`, receiver_location: `Mahrusa (İstanbul)`, lat: 41.0082, lng: 28.9784 }
+        ],
+        receivers: [`Pasha`, `Molla/Kadi`]
+      },
+      {
+        id: 25,
+        petitioner: `Fatma Hatun`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `female`,
+        gender: `Female`,
+        subject: `non-payment of mahr upon divorce and unlawful seizure of personal property by ex-husband`,
+        category: `Debt`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Boğazhisar`],
+        locations: [
+          { location_id: 27, location_name: `Çanakkale`, receiver_location: `Boğazhisar`, lat: 40.1490, lng: 26.4050 }
+        ],
+        receivers: [`Pasha`, `Kadi`, `Former Kadi`, `Mevlana Abdullah`]
+      },
+      {
+        id: 27,
+        petitioner: `Rumeli Eyaleti Züamâ ve Erbab-ı Tımarı`,
+        rawTitle: `Zaim / Timar Holder`,
+        titleTier: `Military & Timar`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `collection and reimbursement of shared campaign expenses and loans (6,330 guruş)`,
+        category: `Troop Supply`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 28, location_name: `Rumeli Eyaleti`, receiver_location: `Sofya`, lat: 42.6977, lng: 23.3219 }
+        ],
+        receivers: [`Pasha`, `Kadi`]
+      },
+      {
+        id: 28,
+        petitioner: `Mehmed`,
+        rawTitle: `Kapu Kethüdası`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `request for sale of soap from one ship in Midilli at official rate and dispatch of remaining two ships to Istanbul`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 29, location_name: `Greece`, receiver_location: `Midilli`, lat: 39.1067, lng: 26.5558 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 29,
+        petitioner: `Ismail`,
+        rawTitle: `Mütesellim`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `dispute over mutasallim appointment after previous officer's death and demand to enforce control via official deed (temessük)`,
+        category: `Governance`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 30, location_name: `Kayseri`, receiver_location: `Kayseri`, lat: 38.7205, lng: 35.4826 }
+        ],
+        receivers: [`Molla/Kadi`, `Kadi`]
+      },
+      {
+        id: 30,
+        petitioner: `Mustafa`,
+        rawTitle: `Çorbacı`,
+        titleTier: `Military & Timar`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `refusal of Osman Beyoğlu Ahmed in Yenişehir to pay a debt of 2,200 guruş`,
+        category: `Debt`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Bursa`],
+        locations: [
+          { location_id: 31, location_name: `Bursa`, receiver_location: `Bursa`, lat: 40.1885, lng: 29.0610 }
+        ],
+        receivers: [`Molla/Kadi`]
+      },
+      {
+        id: 31,
+        petitioner: `People of Yorgi Castle`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `Resettlement`,
+        category: `Property`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Bursa`],
+        locations: [
+          { location_id: 32, location_name: `Bursa`, receiver_location: `Mihaliç`, lat: 40.2161, lng: 28.3581 }
+        ],
+        receivers: [`Molla/Kadi`]
+      },
+      {
+        id: 32,
+        petitioner: `Residents of Tatarpazarı`,
+        rawTitle: `Kadi / Çavuş / Subject`,
+        titleTier: `Judicial & Official`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `Tax Obstruction`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 33, location_name: `Bulgaria`, receiver_location: `Tatarpazarı`, lat: 42.1928, lng: 24.3336 }
+        ],
+        receivers: [`Pasha`, `Kadi`]
+      },
+      {
+        id: 33,
+        petitioner: `Ali`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `Inheritance`,
+        category: `Property`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Bursa`],
+        locations: [
+          { location_id: 34, location_name: `Bursa`, receiver_location: `Bursa`, lat: 40.1885, lng: 29.0610 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 34,
+        petitioner: `Serdar Hüseyin Paşa`,
+        rawTitle: `Serdar`,
+        titleTier: `Military & Timar`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `Troop Supply`,
+        category: `Troop Supply`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Haleb`],
+        locations: [
+          { location_id: 35, location_name: `Haleb`, receiver_location: `Haleb`, lat: 36.206960, lng: 37.131759 },
+          { location_id: 36, location_name: `Haleb`, receiver_location: `Kilis`, lat: 36.716529, lng: 37.114378 },
+          { location_id: 37, location_name: `Haleb`, receiver_location: `Azez`, lat: 36.587947, lng: 37.047250 }
+        ],
+        receivers: [`Kadi`, `Kadi`, `Kadi`]
+      },
+      {
+        id: 35,
+        petitioner: `Ali`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `Revenue Collection`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`İzmir`, `Kütahya`],
+        locations: [
+          { location_id: 38, location_name: `Izmir`, receiver_location: `Menemen`, lat: 38.6011, lng: 27.0678 },
+          { location_id: 39, location_name: `Manisa`, receiver_location: `Manisa`, lat: 38.6191, lng: 27.4289 },
+          { location_id: 40, location_name: `Kütahya`, receiver_location: `Kütahya`, lat: 39.4167, lng: 29.9833 },
+          { location_id: 41, location_name: `Aydın`, receiver_location: `Güzelhisar`, lat: 37.8444, lng: 27.8458 }
+        ],
+        receivers: [`Kadi`, `Kadi`, `Kadi`, `Kadi`]
+      },
+      {
+        id: 36,
+        petitioner: `Ahmed Kapudan`,
+        rawTitle: `Kalyon Kapudanı`,
+        titleTier: `Military & Timar`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `Confiscation`,
+        category: `Revenue`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Boğazhisar`],
+        locations: [
+          { location_id: 42, location_name: `Çanakkale`, receiver_location: `Boğazhisar`, lat: 40.1490, lng: 26.4050 }
+        ],
+        receivers: [`Vizier`]
+      },
+      {
+        id: 37,
+        petitioner: `Tire Eşraf ve Fukahası`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `Extortion`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`İzmir`],
+        locations: [
+          { location_id: 43, location_name: `Izmir`, receiver_location: `Tire`, lat: 38.0892, lng: 27.7344 }
+        ],
+        receivers: [`Molla/Kadi`]
+      },
+      {
+        id: 38,
+        petitioner: `Vezir Mehmed Paşa`,
+        rawTitle: `Vizier`,
+        titleTier: `Judicial & Official`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `Property Purchase`,
+        category: `Property`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [
+          { location_id: 44, location_name: `Istanbul`, receiver_location: `Üsküdar`, lat: 41.0267, lng: 29.0163 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 39,
+        petitioner: `Mehmed`,
+        rawTitle: `Usta`,
+        titleTier: `Religious & Artisan`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `Nonpayment`,
+        category: `Debt`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Edirne`],
+        locations: [
+          { location_id: 45, location_name: `Edirne`, receiver_location: `Edirne`, lat: 41.6772, lng: 26.5557 }
+        ],
+        receivers: [`Kadi`]
+      },
+      {
+        id: 40,
+        petitioner: `Mehmed`,
+        rawTitle: `Usta`,
+        titleTier: `Religious & Artisan`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `Nonpayment`,
+        category: `Debt`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Edirne`],
+        locations: [
+          { location_id: 46, location_name: `Edirne`, receiver_location: `Edirne`, lat: 41.6772, lng: 26.5557 }
+        ],
+        receivers: [`Kadi`, `Bostancıbaşı`]
+      },
+      {
+        id: 41,
+        petitioner: `Mustafa`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `male`,
+        gender: `Male`,
+        subject: `debt dispute`,
+        category: `Debt`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`İzmir`],
+        locations: [
+          { location_id: 47, location_name: `İzmir`, receiver_location: `İzmir`, lat: 38.4237, lng: 27.1428 }
+        ],
+        receivers: [`Vizier`, `Vizier`, `Kadi`]
+      },
+      {
+        id: 42,
+        petitioner: `Bilecik Naibi ve Ahalisi`,
+        rawTitle: `Deputy judge / Subject`,
+        titleTier: `Judicial & Official`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `Extortion`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [`Kütahya`],
+        locations: [
+          { location_id: 48, location_name: `Eskişehir`, receiver_location: `Eskişehir`, lat: 39.7767, lng: 30.5206 },
+          { location_id: 49, location_name: `Bilecik`, receiver_location: `Bilecik`, lat: 40.1425, lng: 29.9792 }
+        ],
+        receivers: [`Kadi`, `Kadi`]
+      },
+      {
+        id: 43,
+        petitioner: `Seydişehri Ahalisi`,
+        rawTitle: `Subject`,
+        titleTier: `Subject`,
+        rawGender: `group`,
+        gender: `Group`,
+        subject: `Extortion`,
+        category: `Extortion`,
+        month: `Muharrem`,
+        year: 1059,
+        hotspots: [],
+        locations: [],
+        receivers: [`Kadi`]
+      }
+    ];
+
+    // Enrich with distances to Istanbul & readable location summary
+    const DECREES = RAW_DECREES.map(d => {
+      const dists = d.locations.map(l => haversineKm(ISTANBUL.lat, ISTANBUL.lng, l.lat, l.lng));
+      const avgDist = dists.length ? Math.round(dists.reduce((a, b) => a + b, 0) / dists.length) : null;
+      const uniqueTargets = Array.from(new Set(d.locations.map(l => l.receiver_location)));
+      const primaryOrigin = d.locations.length ? d.locations[0].location_name : `Seydişehri (non-geocoded)`;
+      const locationLabel = d.locations.length
+        ? (uniqueTargets.join(`, `) === primaryOrigin ? primaryOrigin : `${primaryOrigin} → ${uniqueTargets.join(`, `)}`)
+        : `Seydişehri (Unplotted in slice)`;
+      let distBand = `unplotted`;
+      if (avgDist !== null) {
+        if (avgDist <= 150) distBand = `core`;
+        else if (avgDist <= 350) distBand = `corridor`;
+        else if (avgDist <= 750) distBand = `regional`;
+        else distBand = `frontier`;
+      }
+      return Object.assign({}, d, {
+        avgDist,
+        distBand,
+        primaryOrigin,
+        locationLabel
+      });
+    });
+
+    // =========================================================================
+    // 2. APPLICATION STATE & CSS TOKEN READER
+    // =========================================================================
+    const state = {
+      hotspot: `all`,
+      category: `all`,
+      gender: `all`,
+      titleTier: `all`,
+      distBand: `all`,
+      search: ``,
+      sortKey: `id`,
+      sortDir: `asc`,
+      selectedDecreeId: 1,
+      layers: {
+        heat: true,
+        arcs: true,
+        nodes: true,
+        rings: false
+      }
+    };
+
+    function getToken(name, fallback) {
+      const val = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return val || fallback;
+    }
+
+    const CATEGORY_COLORS = {};
+    function initCategoryColors() {
+      CATEGORY_COLORS[`Extortion`] = getToken(`--data-4`, `#b84a39`);
+      CATEGORY_COLORS[`Debt`] = getToken(`--data-2`, `#d99000`);
+      CATEGORY_COLORS[`Property`] = getToken(`--data-3`, `#2b6e52`);
+      CATEGORY_COLORS[`Revenue`] = getToken(`--data-1`, `#1f4e5f`);
+      CATEGORY_COLORS[`Troop Supply`] = getToken(`--data-5`, `#5a4b81`);
+      CATEGORY_COLORS[`Governance`] = getToken(`--on-surface-variant`, `#56585c`);
+    }
+
+    // =========================================================================
+    // 3. LEAFLET VECTOR MAP + CUSTOM CANVAS KERNEL DENSITY HEATMAP LAYER
+    // =========================================================================
+    let map = null;
+    let heatCanvasLayer = null;
+    let arcsLayerGroup = null;
+    let nodesLayerGroup = null;
+    let ringsLayerGroup = null;
+
+    const HeatmapCanvasLayer = L.Layer.extend({
+      onAdd: function (targetMap) {
+        this._map = targetMap;
+        this._canvas = L.DomUtil.create(`canvas`, `leaflet-heatmap-canvas`);
+        this._canvas.style.position = `absolute`;
+        this._canvas.style.top = `0`;
+        this._canvas.style.left = `0`;
+        this._canvas.style.pointerEvents = `none`;
+        this._canvas.style.mixBlendMode = `multiply`;
+        const pane = targetMap.getPane(`overlayPane`);
+        if (pane) pane.appendChild(this._canvas);
+
+        targetMap.on(`moveend zoomend resize`, this._reset, this);
+        this._reset();
+      },
+      onRemove: function (targetMap) {
+        if (this._canvas && this._canvas.parentNode) {
+          this._canvas.parentNode.removeChild(this._canvas);
+        }
+        targetMap.off(`moveend zoomend resize`, this._reset, this);
+      },
+      setPoints: function (points) {
+        this._points = points || [];
+        this._draw();
+      },
+      _reset: function () {
+        if (!this._map || !this._canvas) return;
+        const size = this._map.getSize();
+        const topLeft = this._map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(this._canvas, topLeft);
+        this._canvas.width = size.x;
+        this._canvas.height = size.y;
+        this._draw();
+      },
+      _draw: function () {
+        if (!this._map || !this._canvas) return;
+        const ctx = this._canvas.getContext(`2d`);
+        if (!ctx) return;
+        const w = this._canvas.width;
+        const h = this._canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        if (!state.layers.heat || !this._points || !this._points.length) return;
+
+        // Radius scales subtly with zoom for crisp density visualization
+        const z = this._map.getZoom();
+        const radius = Math.max(28, Math.min(68, z * 7));
+
+        // First pass: accumulate alpha intensity in grayscale buffer
+        const alphaCanvas = document.createElement(`canvas`);
+        alphaCanvas.width = w;
+        alphaCanvas.height = h;
+        const actx = alphaCanvas.getContext(`2d`);
+        if (!actx) return;
+
+        this._points.forEach(pt => {
+          const cp = this._map.latLngToContainerPoint([pt.lat, pt.lng]);
+          if (cp.x < -radius || cp.y < -radius || cp.x > w + radius || cp.y > h + radius) return;
+          const grad = actx.createRadialGradient(cp.x, cp.y, 0, cp.x, cp.y, radius);
+          grad.addColorStop(0, `rgba(0, 0, 0, 0.34)`);
+          grad.addColorStop(0.45, `rgba(0, 0, 0, 0.16)`);
+          grad.addColorStop(1, `rgba(0, 0, 0, 0)`);
+          actx.fillStyle = grad;
+          actx.beginPath();
+          actx.arc(cp.x, cp.y, radius, 0, Math.PI * 2);
+          actx.fill();
+        });
+
+        // Second pass: colorize accumulated intensity into Briefing Amber -> Brick Red palette
+        const img = actx.getImageData(0, 0, w, h);
+        const d = img.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const a = d[i + 3];
+          if (a < 8) continue;
+          const t = Math.min(1, a / 185);
+          if (t < 0.4) {
+            const k = t / 0.4;
+            d[i] = 242;
+            d[i + 1] = Math.round(205 - k * 38);
+            d[i + 2] = Math.round(45 - k * 30);
+            d[i + 3] = Math.round(t * 210);
+          } else if (t < 0.75) {
+            const k = (t - 0.4) / 0.35;
+            d[i] = Math.round(242 - k * 34);
+            d[i + 1] = Math.round(167 - k * 75);
+            d[i + 2] = Math.round(15 + k * 25);
+            d[i + 3] = Math.round(105 + k * 75);
+          } else {
+            const k = (t - 0.75) / 0.25;
+            d[i] = Math.round(208 - k * 24);
+            d[i + 1] = Math.round(92 - k * 28);
+            d[i + 2] = Math.round(40 + k * 14);
+            d[i + 3] = Math.round(180 + k * 55);
+          }
+        }
+        ctx.putImageData(img, 0, 0);
+      }
+    });
+
+    function initMap() {
+      const container = document.getElementById(`gis-map`);
+      if (!container) return;
+
+      map = L.map(`gis-map`, {
+        center: [38.9, 31.2],
+        zoom: 5,
+        minZoom: 4,
+        maxZoom: 6,
+        scrollWheelZoom: false
+      });
+
+      map.attributionControl.addAttribution(`Boundaries: Natural Earth 50m (public domain)`);
+
+      // Load Natural Earth 50m vector basemap (approved CDN)
+      fetch(`https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json`)
+        .then(r => r.json())
+        .then(topo => {
+          const geo = topojson.feature(topo, topo.objects.countries);
+          L.geoJSON(geo, {
+            interactive: false,
+            style: {
+              fillColor: getToken(`--map-land`, `#efe9dc`),
+              fillOpacity: 1,
+              color: getToken(`--map-land-border`, `#bfb6a3`),
+              weight: 0.75
+            }
+          }).addTo(map);
+
+          // Add layers in clean Z-order
+          ringsLayerGroup = L.layerGroup().addTo(map);
+          heatCanvasLayer = new HeatmapCanvasLayer();
+          heatCanvasLayer.addTo(map);
+          arcsLayerGroup = L.layerGroup().addTo(map);
+          nodesLayerGroup = L.layerGroup().addTo(map);
+
+          renderAll();
+          map.invalidateSize();
+        })
+        .catch(() => {
+          // Fallback if network fails: still draw overlays cleanly
+          ringsLayerGroup = L.layerGroup().addTo(map);
+          heatCanvasLayer = new HeatmapCanvasLayer();
+          heatCanvasLayer.addTo(map);
+          arcsLayerGroup = L.layerGroup().addTo(map);
+          nodesLayerGroup = L.layerGroup().addTo(map);
+          renderAll();
+        });
+    }
+
+    // =========================================================================
+    // 4. FILTERING & SORTING ENGINE
+    // =========================================================================
+    function getFilteredDecrees() {
+      const q = state.search.trim().toLowerCase();
+      return DECREES.filter(d => {
+        if (state.hotspot !== `all` && !d.hotspots.includes(state.hotspot)) return false;
+        if (state.category !== `all` && d.category !== state.category) return false;
+        if (state.gender !== `all` && d.gender !== state.gender) return false;
+        if (state.titleTier !== `all` && d.titleTier !== state.titleTier) return false;
+        if (state.distBand !== `all` && d.distBand !== state.distBand) return false;
+        if (q) {
+          const hay = `${d.id} ${d.petitioner} ${d.rawTitle} ${d.subject} ${d.locationLabel} ${d.receivers.join(` `)}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function setHotspot(hs) {
+      state.hotspot = hs;
+      document.querySelectorAll(`.chip-btn[data-hotspot]`).forEach(btn => {
+        btn.setAttribute(`aria-pressed`, btn.dataset.hotspot === hs ? `true` : `false`);
+      });
+      renderAll();
+      if (map && HOTSPOT_META[hs]) {
+        map.flyTo(HOTSPOT_META[hs].center, HOTSPOT_META[hs].zoom, { duration: 0.6 });
+      }
+    }
+
+    function applyFilters() {
+      const catEl = document.getElementById(`filter-category`);
+      const genEl = document.getElementById(`filter-gender`);
+      const titleEl = document.getElementById(`filter-title`);
+      const distEl = document.getElementById(`filter-distance`);
+      const searchEl = document.getElementById(`table-search`);
+
+      state.category = catEl ? catEl.value : `all`;
+      state.gender = genEl ? genEl.value : `all`;
+      state.titleTier = titleEl ? titleEl.value : `all`;
+      state.distBand = distEl ? distEl.value : `all`;
+      state.search = searchEl ? searchEl.value : ``;
+
+      renderAll();
+    }
+
+    function resetAllFilters() {
+      state.hotspot = `all`;
+      state.category = `all`;
+      state.gender = `all`;
+      state.titleTier = `all`;
+      state.distBand = `all`;
+      state.search = ``;
+
+      const catEl = document.getElementById(`filter-category`);
+      const genEl = document.getElementById(`filter-gender`);
+      const titleEl = document.getElementById(`filter-title`);
+      const distEl = document.getElementById(`filter-distance`);
+      const searchEl = document.getElementById(`table-search`);
+      if (catEl) catEl.value = `all`;
+      if (genEl) genEl.value = `all`;
+      if (titleEl) titleEl.value = `all`;
+      if (distEl) distEl.value = `all`;
+      if (searchEl) searchEl.value = ``;
+
+      document.querySelectorAll(`.chip-btn[data-hotspot]`).forEach(btn => {
+        btn.setAttribute(`aria-pressed`, btn.dataset.hotspot === `all` ? `true` : `false`);
+      });
+
+      renderAll();
+      if (map) map.flyTo(HOTSPOT_META.all.center, HOTSPOT_META.all.zoom, { duration: 0.6 });
+    }
+
+    function toggleLayer(layerName) {
+      state.layers[layerName] = !state.layers[layerName];
+      const btn = document.getElementById(`btn-layer-${layerName}`);
+      if (btn) btn.setAttribute(`aria-pressed`, state.layers[layerName] ? `true` : `false`);
+      renderMapLayers(getFilteredDecrees());
+    }
+
+    function fitMapToActive() {
+      if (!map) return;
+      const filtered = getFilteredDecrees();
+      const pts = [];
+      filtered.forEach(d => d.locations.forEach(l => pts.push([l.lat, l.lng])));
+      if (!pts.length) {
+        map.flyTo(HOTSPOT_META.all.center, HOTSPOT_META.all.zoom, { duration: 0.5 });
+        return;
+      }
+      if (pts.length === 1) {
+        map.flyTo(pts[0], 6, { duration: 0.5 });
+        return;
+      }
+      pts.push([ISTANBUL.lat, ISTANBUL.lng]);
+      map.fitBounds(L.latLngBounds(pts), { padding: [35, 35], maxZoom: 6 });
+    }
+
+    function selectDecree(id, panMap) {
+      state.selectedDecreeId = id;
+      const filtered = getFilteredDecrees();
+      renderInspector(filtered);
+      renderTable(filtered);
+      renderMapLayers(filtered);
+
+      if (panMap && map) {
+        const d = DECREES.find(x => x.id === id);
+        if (d && d.locations.length) {
+          const l = d.locations[0];
+          map.flyTo([l.lat, l.lng], Math.max(map.getZoom(), 6), { duration: 0.55 });
+        }
+      }
+    }
+
+    function stepDecree(delta) {
+      const filtered = getFilteredDecrees();
+      if (!filtered.length) return;
+      const idx = filtered.findIndex(d => d.id === state.selectedDecreeId);
+      const nextIdx = idx === -1 ? 0 : (idx + delta + filtered.length) % filtered.length;
+      selectDecree(filtered[nextIdx].id, true);
+    }
+
+    function sortTable(key) {
+      if (state.sortKey === key) {
+        state.sortDir = state.sortDir === `asc` ? `desc` : `asc`;
+      } else {
+        state.sortKey = key;
+        state.sortDir = `asc`;
+      }
+      renderTable(getFilteredDecrees());
+    }
+
+    // =========================================================================
+    // 5. RENDERING: KPI, MAP, INSPECTOR, CHARTS, TABLE
+    // =========================================================================
+    function renderAll() {
+      const filtered = getFilteredDecrees();
+
+      // Ensure selected decree remains valid inside filtered list if possible
+      if (filtered.length && !filtered.some(d => d.id === state.selectedDecreeId)) {
+        state.selectedDecreeId = filtered[0].id;
+      }
+
+      renderKPIs(filtered);
+      renderMapLayers(filtered);
+      renderInspector(filtered);
+      renderCharts(filtered);
+      renderTable(filtered);
+    }
+
+    function renderKPIs(filtered) {
+      const totalPts = filtered.reduce((acc, d) => acc + d.locations.length, 0);
+      const mappedCount = filtered.filter(d => d.locations.length > 0).length;
+
+      const kpiDecrees = document.getElementById(`kpi-decrees`);
+      const kpiDecreesSub = document.getElementById(`kpi-decrees-sub`);
+      if (kpiDecrees) kpiDecrees.textContent = `${filtered.length}`;
+      if (kpiDecreesSub) {
+        kpiDecreesSub.textContent = `${totalPts} geocoded sites across ${mappedCount} mapped decrees`;
+      }
+
+      const mapStatus = document.getElementById(`map-status-readout`);
+      if (mapStatus) {
+        mapStatus.textContent = `Showing ${totalPts} geocoded nodes across ${mappedCount} mapped decrees`;
+      }
+
+      const dists = filtered.filter(d => d.avgDist !== null).map(d => d.avgDist).sort((a, b) => a - b);
+      const kpiMed = document.getElementById(`kpi-median-dist`);
+      const kpiRange = document.getElementById(`kpi-dist-range`);
+      if (dists.length) {
+        const mid = Math.floor(dists.length / 2);
+        const median = dists.length % 2 !== 0 ? dists[mid] : Math.round((dists[mid - 1] + dists[mid]) / 2);
+        if (kpiMed) kpiMed.textContent = `${median.toLocaleString()} km`;
+        if (kpiRange) kpiRange.textContent = `Range: ${dists[0].toLocaleString()} km – ${dists[dists.length - 1].toLocaleString()} km`;
+      } else {
+        if (kpiMed) kpiMed.textContent = `—`;
+        if (kpiRange) kpiRange.textContent = `No geocoded decrees in selection`;
+      }
+
+      const nonElite = filtered.filter(d =>
+        d.titleTier === `Subject` ||
+        d.titleTier === `Non-Muslim Subject` ||
+        d.gender === `Female` ||
+        d.gender === `Group`
+      ).length;
+      const pct = filtered.length ? Math.round((nonElite / filtered.length) * 100) : 0;
+      const kpiSubj = document.getElementById(`kpi-subject-share`);
+      const kpiSubjSub = document.getElementById(`kpi-subject-sub`);
+      if (kpiSubj) kpiSubj.textContent = `${pct}%`;
+      if (kpiSubjSub) kpiSubjSub.textContent = `${nonElite} of ${filtered.length} decrees filed by subjects, women, or groups`;
+
+      // Receiver breakdown
+      const recCounts = {};
+      let totalRec = 0;
+      filtered.forEach(d => d.receivers.forEach(r => {
+        recCounts[r] = (recCounts[r] || 0) + 1;
+        totalRec += 1;
+      }));
+      const topRec = Object.entries(recCounts).sort((a, b) => b[1] - a[1])[0];
+      const kpiRec = document.getElementById(`kpi-receiver-top`);
+      const kpiRecSub = document.getElementById(`kpi-receiver-sub`);
+      if (topRec && totalRec) {
+        const rPct = Math.round((topRec[1] / totalRec) * 100);
+        if (kpiRec) kpiRec.textContent = `${topRec[0]} (${rPct}%)`;
+        if (kpiRecSub) kpiRecSub.textContent = `${topRec[1]} of ${totalRec} dispatched imperial orders`;
+      } else {
+        if (kpiRec) kpiRec.textContent = `—`;
+        if (kpiRecSub) kpiRecSub.textContent = `No receiver orders in selection`;
+      }
+    }
+
+    function renderMapLayers(filtered) {
+      if (!map || !heatCanvasLayer || !arcsLayerGroup || !nodesLayerGroup || !ringsLayerGroup) return;
+
+      arcsLayerGroup.clearLayers();
+      nodesLayerGroup.clearLayers();
+      ringsLayerGroup.clearLayers();
+
+      const allPoints = [];
+      filtered.forEach(d => {
+        d.locations.forEach(l => {
+          allPoints.push({ decree: d, loc: l, lat: l.lat, lng: l.lng });
+        });
+      });
+
+      // 1. Heatmap density points
+      heatCanvasLayer.setPoints(allPoints.map(p => ({ lat: p.lat, lng: p.lng })));
+
+      // 2. Distance Rings around Istanbul
+      if (state.layers.rings) {
+        [250000, 500000, 1000000].forEach(radius => {
+          L.circle([ISTANBUL.lat, ISTANBUL.lng], {
+            radius,
+            color: getToken(`--secondary`, `#1f4e5f`),
+            weight: 1,
+            dashArray: `4 6`,
+            fill: false,
+            interactive: false
+          }).addTo(ringsLayerGroup);
+        });
+      }
+
+      // 3. Istanbul Connectivity Arcs
+      if (state.layers.arcs) {
+        const seenLinks = new Set();
+        allPoints.forEach(p => {
+          const key = `${p.lat.toFixed(3)},${p.lng.toFixed(3)}`;
+          if (seenLinks.has(key)) return;
+          seenLinks.add(key);
+
+          const isSelected = p.decree.id === state.selectedDecreeId;
+          L.polyline(
+            [[ISTANBUL.lat, ISTANBUL.lng], [p.lat, p.lng]],
+            {
+              color: isSelected ? getToken(`--data-4`, `#b84a39`) : getToken(`--map-arc`, `#1f4e5f`),
+              weight: isSelected ? 2.4 : 1.1,
+              opacity: isSelected ? 0.9 : 0.35,
+              dashArray: isSelected ? null : `4 4`,
+              interactive: false
+            }
+          ).addTo(arcsLayerGroup);
+        });
+      }
+
+      // 4. Decree Nodes (grouped slightly if overlapping exact coordinates so every decree is clickable)
+      if (state.layers.nodes) {
+        // Plot Istanbul Anchor first
+        L.circleMarker([ISTANBUL.lat, ISTANBUL.lng], {
+          radius: 8,
+          color: getToken(`--on-surface`, `#17181a`),
+          fillColor: getToken(`--primary-container`, `#f2b705`),
+          fillOpacity: 1,
+          weight: 2
+        })
+          .bindTooltip(`<strong>Istanbul — Dîvân-ı Hümâyûn</strong><br>Imperial Capital (Origin of Decrees)`, {
+            className: `ottoman-tooltip`,
+            direction: `top`
+          })
+          .addTo(nodesLayerGroup);
+
+        // Count occurrences at identical coords to offset slightly for clean interaction
+        const coordBuckets = {};
+        allPoints.forEach(p => {
+          const ck = `${p.lat.toFixed(4)}_${p.lng.toFixed(4)}`;
+          if (!coordBuckets[ck]) coordBuckets[ck] = [];
+          coordBuckets[ck].push(p);
+        });
+
+        Object.values(coordBuckets).forEach(bucket => {
+          bucket.forEach((p, idx) => {
+            const angle = (idx / bucket.length) * Math.PI * 2;
+            const offset = bucket.length > 1 ? 0.065 : 0;
+            const lat = p.lat + Math.sin(angle) * offset;
+            const lng = p.lng + Math.cos(angle) * offset;
+
+            const isSelected = p.decree.id === state.selectedDecreeId;
+            const color = CATEGORY_COLORS[p.decree.category] || getToken(`--data-1`, `#1f4e5f`);
+            const distKm = haversineKm(ISTANBUL.lat, ISTANBUL.lng, p.lat, p.lng);
+
+            const marker = L.circleMarker([lat, lng], {
+              radius: isSelected ? 9 : 6,
+              color: isSelected ? getToken(`--on-surface`, `#17181a`) : getToken(`--surface-container-low`, `#ffffff`),
+              weight: isSelected ? 2.5 : 1.5,
+              fillColor: color,
+              fillOpacity: 0.95
+            });
+
+            marker.bindTooltip(
+              `<strong>Decree #${p.decree.id} · ${p.loc.receiver_location}</strong><br>` +
+              `${p.decree.petitioner} (${p.decree.rawTitle})<br>` +
+              `Category: ${p.decree.category} · ${distKm.toLocaleString()} km from Istanbul`,
+              { className: `ottoman-tooltip`, direction: `top` }
+            );
+
+            marker.on(`click`, () => selectDecree(p.decree.id, false));
+            marker.addTo(nodesLayerGroup);
+          });
+        });
+      }
+    }
+
+    function renderInspector(filtered) {
+      const kickerEl = document.getElementById(`inspector-kicker`);
+      const bodyEl = document.getElementById(`inspector-body`);
+      const contextEl = document.getElementById(`hotspot-context-box`);
+      const prevBtn = document.getElementById(`btn-prev-decree`);
+      const nextBtn = document.getElementById(`btn-next-decree`);
+
+      if (contextEl && HOTSPOT_META[state.hotspot]) {
+        const hm = HOTSPOT_META[state.hotspot];
+        contextEl.innerHTML = `<strong>${hm.label} Context</strong><br>${hm.summary}`;
+      }
+
+      if (!filtered.length) {
+        if (kickerEl) kickerEl.textContent = `No Matching Decree`;
+        if (bodyEl) {
+          bodyEl.innerHTML = `<p style="color: var(--on-surface-variant);">No decree matches your current filter selection. Reset filters to resume inspection.</p>`;
+        }
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
+        return;
+      }
+
+      if (prevBtn) prevBtn.disabled = filtered.length <= 1;
+      if (nextBtn) nextBtn.disabled = filtered.length <= 1;
+
+      const d = filtered.find(x => x.id === state.selectedDecreeId) || filtered[0];
+      if (kickerEl) kickerEl.textContent = `Decree Dossier · #${d.id} (${d.month} ${d.year})`;
+
+      const genderBadgeClass = d.gender === `Female` ? `badge-gold` : (d.gender === `Group` ? `badge-pine` : `badge-slate`);
+      const distText = d.avgDist !== null ? `${d.avgDist.toLocaleString()} km` : `Unplotted in sheet`;
+
+      const coordsHtml = d.locations.length
+        ? d.locations.map(l => `${l.location_name} → ${l.receiver_location} (${l.lat.toFixed(2)}°, ${l.lng.toFixed(2)}°)`).join(`<br>`)
+        : `Seydişehri (not geocoded in locations_table slice)`;
+
+      const receiversHtml = d.receivers
+        .map(r => `<span class="badge badge-warm">${r}</span>`)
+        .join(``);
+
+      if (bodyEl) {
+        bodyEl.innerHTML = `
+          <h3 class="dossier-card-title">${d.petitioner}</h3>
+          <div class="badge-row">
+            <span class="badge ${genderBadgeClass}">${d.gender} (${d.rawGender})</span>
+            <span class="badge badge-slate">${d.rawTitle}</span>
+            <span class="badge badge-warn">${d.category}</span>
+          </div>
+
+          <dl class="dossier-dl">
+            <div class="dl-item">
+              <dt>Distance to Istanbul</dt>
+              <dd class="mono-num">${distText}</dd>
+            </div>
+            <div class="dl-item">
+              <dt>Legal Classification</dt>
+              <dd>${d.titleTier}</dd>
+            </div>
+            <div class="dl-item" style="grid-column: 1 / -1;">
+              <dt>Geocoded Origin &amp; Receiver Sites (${d.locations.length})</dt>
+              <dd style="font-weight: 500; font-size: 0.85rem;">${coordsHtml}</dd>
+            </div>
+          </dl>
+
+          <div style="margin-bottom: var(--space-md);">
+            <div class="field-label" style="margin-bottom: var(--space-xs);">Recorded Complaint Subject</div>
+            <p class="subject-quote">“${d.subject}”</p>
+          </div>
+
+          <div>
+            <div class="field-label">Imperial Receivers Dispatched (${d.receivers.length})</div>
+            <div class="receiver-chain">${receiversHtml}</div>
+          </div>
+        `;
+      }
+    }
+
+    // =========================================================================
+    // 6. CHART.JS ANALYTICAL PANELS
+    // =========================================================================
+    const charts = {};
+
+    function destroyChart(id) {
+      if (charts[id]) {
+        charts[id].destroy();
+        delete charts[id];
+      }
+    }
+
+    function renderCharts(filtered) {
+      const fontMono = getToken(`--font-label`, `monospace`);
+      const fontBody = getToken(`--font-body`, `sans-serif`);
+      const ink = getToken(`--on-surface`, `#17181a`);
+      const muted = getToken(`--on-surface-variant`, `#56585c`);
+      const gridColor = getToken(`--outline-variant`, `#dedad0`);
+
+      Chart.defaults.font.family = fontBody;
+      Chart.defaults.color = ink;
+
+      // 01. Complaint Categories Bar Chart
+      destroyChart(`categories`);
+      const catEl = document.getElementById(`chart-categories`);
+      if (catEl) {
+        const cats = [`Extortion`, `Debt`, `Property`, `Revenue`, `Troop Supply`, `Governance`];
+        const catCounts = cats.map(c => filtered.filter(d => d.category === c).length);
+        charts.categories = new Chart(catEl, {
+          type: `bar`,
+          data: {
+            labels: cats,
+            datasets: [{
+              label: `Decrees`,
+              data: catCounts,
+              backgroundColor: cats.map(c => CATEGORY_COLORS[c]),
+              borderRadius: 3
+            }]
+          },
+          options: {
+            indexAxis: `y`,
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                beginAtZero: true,
+                ticks: { stepSize: 1, font: { family: fontMono } },
+                grid: { color: gridColor }
+              },
+              y: {
+                ticks: { font: { family: fontBody, weight: `600` } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 02. Petitioner Demographics (Gender stacked by Legal Title)
+      destroyChart(`demographics`);
+      const demoEl = document.getElementById(`chart-demographics`);
+      if (demoEl) {
+        const tiers = [`Subject`, `Non-Muslim Subject`, `Military & Timar`, `Judicial & Official`, `Religious & Artisan`];
+        const genders = [
+          { key: `Male`, color: getToken(`--data-1`, `#1f4e5f`) },
+          { key: `Female`, color: getToken(`--primary-container`, `#f2b705`) },
+          { key: `Group`, color: getToken(`--data-3`, `#2b6e52`) }
+        ];
+        charts.demographics = new Chart(demoEl, {
+          type: `bar`,
+          data: {
+            labels: tiers,
+            datasets: genders.map(g => ({
+              label: g.key,
+              data: tiers.map(t => filtered.filter(d => d.titleTier === t && d.gender === g.key).length),
+              backgroundColor: g.color,
+              borderRadius: 2
+            }))
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: `top`, labels: { font: { family: fontMono, size: 11 } } }
+            },
+            scales: {
+              x: {
+                stacked: true,
+                ticks: { font: { size: 11 } },
+                grid: { display: false }
+              },
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                ticks: { stepSize: 2, font: { family: fontMono } },
+                grid: { color: gridColor }
+              }
+            }
+          }
+        });
+      }
+
+      // 03. Distance Decay vs. Petitioner Tier (Scatter)
+      destroyChart(`connectivity`);
+      const connEl = document.getElementById(`chart-connectivity`);
+      if (connEl) {
+        const tierIndex = {
+          'Subject': 1,
+          'Non-Muslim Subject': 2,
+          'Religious & Artisan': 3,
+          'Military & Timar': 4,
+          'Judicial & Official': 5
+        };
+        const tierLabels = [``, `Subject`, `Non-Muslim`, `Artisan/Rel.`, `Military`, `Official`, ``];
+
+        const makeScatter = gender => filtered
+          .filter(d => d.gender === gender && d.avgDist !== null)
+          .map(d => ({
+            x: d.avgDist,
+            y: tierIndex[d.titleTier] + ((d.id % 5) - 2) * 0.06,
+            r: Math.max(5, d.receivers.length * 3.5),
+            decreeId: d.id,
+            label: `#${d.id} ${d.petitioner} (${d.primaryOrigin}, ${d.avgDist} km)`
+          }));
+
+        charts.connectivity = new Chart(connEl, {
+          type: `bubble`,
+          data: {
+            datasets: [
+              {
+                label: `Male`,
+                data: makeScatter(`Male`),
+                backgroundColor: getToken(`--data-1`, `#1f4e5f`)
+              },
+              {
+                label: `Female`,
+                data: makeScatter(`Female`),
+                backgroundColor: getToken(`--primary-container`, `#f2b705`),
+                borderColor: ink,
+                borderWidth: 1.5
+              },
+              {
+                label: `Group`,
+                data: makeScatter(`Group`),
+                backgroundColor: getToken(`--data-3`, `#2b6e52`)
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: `top`, labels: { font: { family: fontMono, size: 11 } } },
+              tooltip: {
+                callbacks: {
+                  label: ctx => ctx.raw.label
+                }
+              }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: `Distance from Istanbul (km)`, font: { family: fontMono, size: 11 }, color: muted },
+                beginAtZero: true,
+                ticks: { font: { family: fontMono } },
+                grid: { color: gridColor }
+              },
+              y: {
+                min: 0.5,
+                max: 5.5,
+                ticks: {
+                  stepSize: 1,
+                  callback: val => tierLabels[Math.round(val)] || ``,
+                  font: { size: 11 }
+                },
+                grid: { color: gridColor }
+              }
+            }
+          }
+        });
+      }
+
+      // 04. Bureaucratic Dispatch Chain (Receivers)
+      destroyChart(`receivers`);
+      const recEl = document.getElementById(`chart-receivers`);
+      if (recEl) {
+        const recCounts = {};
+        filtered.forEach(d => d.receivers.forEach(r => {
+          recCounts[r] = (recCounts[r] || 0) + 1;
+        }));
+        const sortedRecs = Object.entries(recCounts).sort((a, b) => b[1] - a[1]);
+        charts.receivers = new Chart(recEl, {
+          type: `bar`,
+          data: {
+            labels: sortedRecs.map(x => x[0]),
+            datasets: [{
+              label: `Dispatches`,
+              data: sortedRecs.map(x => x[1]),
+              backgroundColor: sortedRecs.map((x, i) => i === 0 ? getToken(`--data-1`, `#1f4e5f`) : getToken(`--data-2`, `#d99000`)),
+              borderRadius: 3
+            }]
+          },
+          options: {
+            indexAxis: `y`,
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                beginAtZero: true,
+                ticks: { font: { family: fontMono } },
+                grid: { color: gridColor }
+              },
+              y: {
+                ticks: { font: { size: 11 } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // =========================================================================
+    // 7. MASTER DECREE TABLE RENDERER
+    // =========================================================================
+    function renderTable(filtered) {
+      const tbody = document.getElementById(`decree-tbody`);
+      const emptyEl = document.getElementById(`table-empty`);
+      const countLabel = document.getElementById(`table-count-label`);
+
+      if (countLabel) countLabel.textContent = `${filtered.length} matching record${filtered.length === 1 ? `` : `s`}`;
+
+      if (!tbody) return;
+      if (!filtered.length) {
+        tbody.innerHTML = ``;
+        if (emptyEl) emptyEl.hidden = false;
+        return;
+      }
+      if (emptyEl) emptyEl.hidden = true;
+
+      const sorted = filtered.slice().sort((a, b) => {
+        const dir = state.sortDir === `asc` ? 1 : -1;
+        switch (state.sortKey) {
+          case `id`: return (a.id - b.id) * dir;
+          case `distance`: return ((a.avgDist ?? 9999) - (b.avgDist ?? 9999)) * dir;
+          case `location`: return a.locationLabel.localeCompare(b.locationLabel) * dir;
+          case `petitioner`: return a.petitioner.localeCompare(b.petitioner) * dir;
+          case `title`: return a.rawTitle.localeCompare(b.rawTitle) * dir;
+          case `gender`: return a.gender.localeCompare(b.gender) * dir;
+          case `category`: return a.category.localeCompare(b.category) * dir;
+          default: return (a.id - b.id) * dir;
+        }
+      });
+
+      tbody.innerHTML = sorted.map(d => {
+        const isSelected = d.id === state.selectedDecreeId;
+        const distCell = d.avgDist !== null ? `${d.avgDist.toLocaleString()} km` : `—`;
+        const gBadge = d.gender === `Female` ? `badge-gold` : (d.gender === `Group` ? `badge-pine` : `badge-slate`);
+        return `
+          <tr class="${isSelected ? `is-selected` : ``}" onclick="selectDecree(${d.id}, true)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectDecree(${d.id}, true);}">
+            <td class="mono-num"><strong>#${d.id}</strong></td>
+            <td><strong>${d.locationLabel}</strong></td>
+            <td class="mono-num">${distCell}</td>
+            <td>${d.petitioner}</td>
+            <td>${d.rawTitle}</td>
+            <td><span class="badge ${gBadge}">${d.gender}</span></td>
+            <td><span class="badge badge-warn">${d.category}</span></td>
+            <td>
+              <div>${d.subject}</div>
+              <div style="font-family: var(--font-label); font-size: var(--micro-size); color: var(--on-surface-variant); margin-top: 0.2rem;">
+                To: ${d.receivers.join(` · `)}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join(``);
+    }
+
+    // =========================================================================
+    // 8. BOOTSTRAP
+    // =========================================================================
+    document.addEventListener(`DOMContentLoaded`, () => {
+      initCategoryColors();
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+      initMap();
+    });
+  </script>
+</body>
+</html>
