@@ -1115,8 +1115,8 @@
         <div class="figure-label">
           <span id="kpi-lbl-gurus">Total Claimed Guruş · Toplam Guruş</span>
         </div>
-        <p class="figure-value" id="kpi-val-gurus">8,530</p>
-        <p class="figure-sub" id="kpi-sub-gurus">Explicit &amp; coded claims (1 guruş = 80 akçe)</p>
+        <p class="figure-value" id="kpi-val-gurus">30,440</p>
+        <p class="figure-sub" id="kpi-sub-gurus">Quantified claims include archival estimates; unit rates excluded (1 guruş = 80 akçe)</p>
       </article>
 
       <article class="figure-card">
@@ -2063,6 +2063,65 @@
       markerGroup = L.layerGroup().addTo(leafletMap);
       heatLayerInstance = new CanvasHeatLayer([]);
 
+      const istanbulCoords = [41.0082, 28.9784];
+      const destinations = new Map();
+      LOCATIONS_TABLE.forEach(location => {
+        if (
+          location.lat === null || location.lat === undefined || location.lat === `` ||
+          location.long === null || location.long === undefined || location.long === ``
+        ) return;
+
+        const lat = Number(location.lat);
+        const lng = Number(location.long);
+        if (
+          !Number.isFinite(lat) || lat < -90 || lat > 90 ||
+          !Number.isFinite(lng) || lng < -180 || lng > 180
+        ) return;
+
+        const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+        if (key === `${istanbulCoords[0].toFixed(5)},${istanbulCoords[1].toFixed(5)}`) return;
+
+        if (!destinations.has(key)) {
+          destinations.set(key, {
+            lat,
+            lng,
+            names: new Set(),
+            decreeIds: new Set()
+          });
+        }
+
+        const destination = destinations.get(key);
+        [location.location_name, location.receiver_location]
+          .filter(Boolean)
+          .forEach(name => destination.names.add(name));
+        if (location.decree_id !== null && location.decree_id !== undefined) {
+          destination.decreeIds.add(location.decree_id);
+        }
+      });
+
+      const courierLayerGroup = L.layerGroup();
+      destinations.forEach(destination => {
+        const popup = document.createElement(`div`);
+        const title = document.createElement(`strong`);
+        title.textContent = `Istanbul → ${Array.from(destination.names).join(` / `)}`;
+        popup.appendChild(title);
+
+        const details = document.createElement(`div`);
+        const decreeIds = Array.from(destination.decreeIds).sort((a, b) => a - b);
+        details.textContent = `Straight-line connection · Decree(s): ${decreeIds.join(`, `)}`;
+        popup.appendChild(details);
+
+        L.polyline([istanbulCoords, [destination.lat, destination.lng]], {
+          color: `#f59e0b`,
+          weight: 1.5,
+          opacity: 0.45,
+          dashArray: `4, 6`
+        })
+          .bindPopup(popup)
+          .addTo(courierLayerGroup);
+      });
+      courierLayerGroup.addTo(leafletMap);
+
       fetch(`https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json`)
         .then(r => r.json())
         .then(topo => {
@@ -2232,10 +2291,15 @@
       applyFilters();
     }
 
+    function getAggregateClaimGurus(financial) {
+      const amount = Number(financial.normalized_gurus) || 0;
+      return String(financial.quantification || ``).includes(`Unit Rate`) ? 0 : amount;
+    }
+
     function updateKpis() {
       const totalDecrees = filteredDecrees.length;
       const totalSites = filteredDecrees.reduce((acc, d) => acc + d.locations.length, 0);
-      const totalGurus = filteredDecrees.reduce((acc, d) => acc + (Number(d.financial.normalized_gurus) || 0), 0);
+      const totalGurus = filteredDecrees.reduce((acc, d) => acc + getAggregateClaimGurus(d.financial), 0);
 
       // Modal defendant category
       const defCounts = {};
@@ -2276,10 +2340,9 @@
       }
       if (elGur) elGur.textContent = Math.round(totalGurus).toLocaleString(`en-US`);
       if (elGurSub) {
-        const explicitCount = filteredDecrees.filter(d => d.financial.quantification.includes(`Explicit`)).length;
         elGurSub.textContent = APP_STATE.lang === `tr`
-          ? `${explicitCount} açık meblağ · 1 guruş = 80 akçe`
-          : `${explicitCount} explicit register sums · 1 guruş = 80 akçe`;
+          ? `Arşiv tahminleri dâhil; birim ücretleri hariç · 1 guruş = 80 akçe`
+          : `Includes archival estimates; unit rates excluded · 1 guruş = 80 akçe`;
       }
       if (elAcc) elAcc.textContent = topDef;
       if (elAccSub) {
@@ -2565,7 +2628,7 @@
       // Chart 1: Financial Claims (Normalized Guruş) by Complaint Category
       const catSums = {};
       filteredDecrees.forEach(d => {
-        catSums[d.std_complaint] = (catSums[d.std_complaint] || 0) + (d.financial.normalized_gurus || 0);
+        catSums[d.std_complaint] = (catSums[d.std_complaint] || 0) + getAggregateClaimGurus(d.financial);
       });
       const catEntries = Object.entries(catSums).sort((a, b) => b[1] - a[1]);
 
