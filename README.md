@@ -40,8 +40,3 @@ The project structure links five primary relational entities:
 
 ## 📜 Citation & Archival Source
 Data transcribed and standardized from the **Presidency of State Archives (Devlet Arşivleri Başkanlığı)**: *1 Numaralı Şikâyet Defteri (1059 / 1649–1650)*.
-```
-
----
-
-🔍 **Need any adjustments?** If you'd like to add specific license info (e.g., MIT License) or a section on how to contribute data, let me know!
