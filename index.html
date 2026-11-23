@@ -1351,7 +1351,7 @@
 
   <script>
     // =========================================================================
-    // 1. SOURCE TABLES (52 Decrees, 74 Spatial Locations, 98 Receiver Rows)
+    // 1. SOURCE TABLES (53 Decrees, 75 Spatial Locations, 100 Receiver Rows)
     // =========================================================================
     let PETITIONERS_TABLE = [
       { decree_id: 1, petitioner_name: `Sheik Yahya`, petitioner_title: `Sheik`, petitioner_gender: `male`, complaint_subject: `desolation`, month: `M`, year: 1059 },
@@ -1405,7 +1405,8 @@
       { decree_id: 53, petitioner_name: `Inhabitants of Rahova Village`, petitioner_title: `Subjects`, petitioner_gender: `group`, complaint_subject: `Extortion`, month: `M`, year: 1059 },
       { decree_id: 54, petitioner_name: `Creditors`, petitioner_title: `Creditor / Subject`, petitioner_gender: `group`, complaint_subject: `Debt`, month: `M`, year: 1059 },
       { decree_id: 55, petitioner_name: `Stipendiaries of Gazi Murad Pasha Waqf`, petitioner_title: `Waqf Beneficiaries / Stipend Holders`, petitioner_gender: `group`, complaint_subject: `Property`, month: `M`, year: 1059 },
-      { decree_id: 56, petitioner_name: `Ramazan`, petitioner_title: `Commander`, petitioner_gender: `male`, complaint_subject: `Debt`, month: `M`, year: 1059 }
+      { decree_id: 56, petitioner_name: `Ramazan`, petitioner_title: `Commander`, petitioner_gender: `male`, complaint_subject: `Debt`, month: `M`, year: 1059 },
+      { decree_id: 57, petitioner_name: `Pirlepe Kadısı Mevlana Ali`, petitioner_title: `Kadi / Local Magistrate`, petitioner_gender: `male`, complaint_subject: `Resettlement`, month: `Zilhicce`, year: `1058 / 1059` }
     ];
 
     let LOCATIONS_TABLE = [
@@ -1482,7 +1483,8 @@
       { location_id: 71, decree_id: 54, location_name: `Diyarbakır`, receiver_location: `Diyarbekir`, lat: 37.9144, long: 40.2306 },
       { location_id: 72, decree_id: 55, location_name: `Syria`, receiver_location: `Haleb`, lat: 36.2021, long: 37.1343 },
       { location_id: 73, decree_id: 56, location_name: `Syria`, receiver_location: `Rakka`, lat: 35.9500, long: 39.0167 },
-      { location_id: 74, decree_id: 56, location_name: `Şanlıurfa`, receiver_location: `Birecik`, lat: 37.0294, long: 37.9786 }
+      { location_id: 74, decree_id: 56, location_name: `Şanlıurfa`, receiver_location: `Birecik`, lat: 37.0294, long: 37.9786 },
+      { location_id: 75, decree_id: 57, location_name: `Kuzey Makedonya (Pirlepe)`, receiver_location: `Kalkandelen`, lat: 42.0097, long: 20.9714 }
     ];
 
     let RECEIVER_TABLE = [
@@ -1583,7 +1585,9 @@
       { receiver_id: 95, decree_id: 55, receiver_title: `Pasha` },
       { receiver_id: 96, decree_id: 55, receiver_title: `Kadi` },
       { receiver_id: 97, decree_id: 56, receiver_title: `Kadi` },
-      { receiver_id: 98, decree_id: 56, receiver_title: `Pasha` }
+      { receiver_id: 98, decree_id: 56, receiver_title: `Pasha` },
+      { receiver_id: 99, decree_id: 57, receiver_title: `Kalkandelen Kadısı` },
+      { receiver_id: 100, decree_id: 57, receiver_title: `Rumeli Beylerbeyisi Mustafa Paşa` }
     ];
 
     // =========================================================================
@@ -1755,7 +1759,8 @@
       { hier_id: 49, decree_id: 53, eyalet: `Rumeli Eyaleti`, sancak: `Üsküb`, kaza: `Üsküb`, karye_or_nefs: `Karye-i Rahova` },
       { hier_id: 50, decree_id: 54, eyalet: `Diyarbekir Eyaleti`, sancak: `Amid (Diyarbekir)`, kaza: `Diyarbekir`, karye_or_nefs: `Nefs-i Diyarbekir` },
       { hier_id: 51, decree_id: 55, eyalet: `Haleb Eyaleti`, sancak: `Haleb`, kaza: `Haleb`, karye_or_nefs: `Gazi Murad Pasha Waqf` },
-      { hier_id: 52, decree_id: 56, eyalet: `Rakka / Haleb Eyaleti`, sancak: `Rakka & Birecik`, kaza: `Rakka & Birecik`, karye_or_nefs: `Euphrates Crossing` }
+      { hier_id: 52, decree_id: 56, eyalet: `Rakka / Haleb Eyaleti`, sancak: `Rakka & Birecik`, kaza: `Rakka & Birecik`, karye_or_nefs: `Euphrates Crossing` },
+      { hier_id: 53, decree_id: 57, eyalet: `Rumeli Eyaleti`, sancak: `Paşa Sancağı`, kaza: `Pirlepe ve Kalkandelen`, karye_or_nefs: `Kaza-i Pirlepe` }
     ];
 
     // Table 7: Dîvân Kararları (Resolutions Table)

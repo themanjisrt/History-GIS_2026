@@ -467,6 +467,15 @@
       "complaint_subject": "Debt",
       "month": "M",
       "year": 1059
+    },
+    {
+      "decree_id": 57,
+      "petitioner_name": "Pirlepe Kadısı Mevlana Ali",
+      "petitioner_title": "Kadi / Local Magistrate",
+      "petitioner_gender": "male",
+      "complaint_subject": "Resettlement",
+      "month": "Zilhicce",
+      "year": "1058 / 1059"
     }
   ],
   "locations": [
@@ -1064,11 +1073,11 @@
     },
     {
       "location_id": 75,
-      "decree_id": null,
-      "location_name": null,
-      "receiver_location": null,
-      "lat": null,
-      "long": null
+      "decree_id": 57,
+      "location_name": "Kuzey Makedonya (Pirlepe)",
+      "receiver_location": "Kalkandelen",
+      "lat": 42.0097,
+      "long": 20.9714
     },
     {
       "location_id": 76,
@@ -1580,13 +1589,13 @@
     },
     {
       "receiver_id": 99,
-      "decree_id": null,
-      "receiver_title": null
+      "decree_id": 57,
+      "receiver_title": "Kalkandelen Kadısı"
     },
     {
       "receiver_id": 100,
-      "decree_id": null,
-      "receiver_title": null
+      "decree_id": 57,
+      "receiver_title": "Rumeli Beylerbeyisi Mustafa Paşa"
     },
     {
       "receiver_id": 101,
