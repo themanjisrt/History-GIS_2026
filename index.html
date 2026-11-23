@@ -167,6 +167,15 @@
       outline-offset: 2px;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
     /* Title Band */
     .title-band {
       background: var(--primary);
@@ -434,7 +443,8 @@
       gap: var(--space-xs);
     }
 
-    .field-group label {
+    .field-group label,
+    .field-group .field-label {
       font-family: var(--font-label);
       font-size: var(--label-size);
       font-weight: 600;
@@ -626,6 +636,31 @@
       gap: var(--space-md);
       align-items: center;
       font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    .map-accessibility-note {
+      margin: var(--space-sm) 0;
+      color: var(--on-surface-variant);
+      font-size: 0.875rem;
+    }
+
+    .map-data-alternative,
+    .chart-data-alternative {
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .map-data-alternative summary,
+    .chart-data-alternative summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: var(--space-xs) 0;
+    }
+
+    .map-data-alternative p {
       color: var(--on-surface-variant);
     }
 
@@ -885,6 +920,10 @@
       width: 100%;
     }
 
+    .chart-data-alternative .table-wrap {
+      margin-top: var(--space-sm);
+    }
+
     /* Historiography Note */
     .hist-note {
       background: var(--surface-container-low);
@@ -972,6 +1011,13 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.84rem;
+    }
+
+    table.data-table caption {
+      padding: var(--space-sm) var(--space-md);
+      color: var(--on-surface);
+      font-weight: 600;
+      text-align: left;
     }
 
     table.data-table thead th {
@@ -1092,7 +1138,7 @@
             <i data-lucide="languages" aria-hidden="true"></i>
             <span id="lbl-lang">Türkçe Arayüz</span>
           </button>
-          <button type="button" class="util-btn" id="btn-theme" onclick="toggleTheme()">
+          <button type="button" class="util-btn" id="btn-theme" aria-pressed="false" onclick="toggleTheme()">
             <i data-lucide="moon" aria-hidden="true"></i>
             <span id="lbl-theme">Dark Mode</span>
           </button>
@@ -1102,15 +1148,15 @@
           </button>
         </div>
         <nav class="nav-tabs" aria-label="Explorer Views">
-          <button type="button" class="tab-btn active" data-view="explorer" onclick="switchView('explorer')">
+          <button type="button" class="tab-btn active" data-view="explorer" aria-controls="view-explorer" aria-pressed="true" onclick="switchView('explorer')">
             <i data-lucide="map" aria-hidden="true"></i>
             <span id="tab-lbl-explorer">Spatial Map &amp; Decrees</span>
           </button>
-          <button type="button" class="tab-btn" data-view="analytics" onclick="switchView('analytics')">
+          <button type="button" class="tab-btn" data-view="analytics" aria-controls="view-analytics" aria-pressed="false" onclick="switchView('analytics')">
             <i data-lucide="bar-chart-3" aria-hidden="true"></i>
             <span id="tab-lbl-analytics">Analytics &amp; Breakdown</span>
           </button>
-          <button type="button" class="tab-btn" data-view="schema" onclick="switchView('schema')">
+          <button type="button" class="tab-btn" data-view="schema" aria-controls="view-schema" aria-pressed="false" onclick="switchView('schema')">
             <i data-lucide="database" aria-hidden="true"></i>
             <span id="tab-lbl-schema">7-Table Relational DB</span>
           </button>
@@ -1160,7 +1206,7 @@
       <div class="filter-header">
         <h2 class="filter-title" id="ui-filter-title">Multi-Faceted Relational Filters · Çok Boyutlu Filtreleme</h2>
         <div class="filter-meta">
-          <span id="filter-status-text">Showing 52 of 52 decrees</span>
+          <span id="filter-status-text" role="status" aria-live="polite" aria-atomic="true">Showing 52 of 52 decrees</span>
           <span id="export-feedback" aria-live="polite"></span>
         </div>
       </div>
@@ -1194,14 +1240,14 @@
         <div class="field-group">
           <label for="filter-min-gurus" id="lbl-range">Financial Range (Guruş) · Tutar Aralığı</label>
           <div class="range-pair">
-            <input type="number" id="filter-min-gurus" class="field-input" min="0" step="50" placeholder="Min" oninput="applyFilters()">
+            <input type="number" id="filter-min-gurus" class="field-input" aria-label="Minimum financial amount in Guruş" min="0" step="50" placeholder="Min" oninput="applyFilters()">
             <span class="range-sep">–</span>
-            <input type="number" id="filter-max-gurus" class="field-input" min="0" step="50" placeholder="Max" oninput="applyFilters()">
+            <input type="number" id="filter-max-gurus" class="field-input" aria-label="Maximum financial amount in Guruş" min="0" step="50" placeholder="Max" oninput="applyFilters()">
           </div>
         </div>
 
         <div class="field-group">
-          <label for="btn-reset-filters" id="lbl-actions">Actions · İşlem</label>
+          <span class="field-label" id="lbl-actions">Actions · İşlem</span>
           <button type="button" id="btn-reset-filters" class="btn-secondary" onclick="resetFilters()">
             <i data-lucide="rotate-ccw" aria-hidden="true"></i>
             <span id="lbl-reset">Reset</span>
@@ -1218,7 +1264,7 @@
           <div class="panel-head">
             <h2 id="ui-map-title">Imperial Petition Geography · Şikâyet Coğrafyası</h2>
             <div class="panel-toolbar">
-              <button type="button" id="btn-heatmap" class="btn-secondary" onclick="toggleHeatmap()">
+              <button type="button" id="btn-heatmap" class="btn-secondary" aria-pressed="false" onclick="toggleHeatmap()">
                 <i data-lucide="flame" aria-hidden="true"></i>
                 <span id="lbl-heatmap">Heatmap Layer: Off</span>
               </button>
@@ -1229,11 +1275,35 @@
             </div>
           </div>
 
-          <div id="ottoman-map" role="region" aria-label="Interactive vector map of Ottoman Empire petitions"></div>
+          <div id="ottoman-map" role="region" aria-label="Interactive vector map of Ottoman Empire petitions" aria-describedby="map-accessible-description"></div>
 
           <div class="map-legend" id="map-legend">
             <!-- Populated dynamically from category colors -->
           </div>
+          <p class="map-accessibility-note" id="map-accessible-description">
+            Use the decree register or the text table below to explore map locations without using the map. Country names shown on the map are also listed in the text alternative.
+          </p>
+          <details class="map-data-alternative">
+            <summary id="map-data-summary">View map locations and country names as text</summary>
+            <p id="map-country-labels">
+              Modern country labels shown on the map: Syria, Türkiye, Greece, Iraq, Bulgaria, Serbia, Hungary, Bosnia and Herzegovina, and North Macedonia.
+            </p>
+            <div class="table-wrap">
+              <table class="data-table" id="map-data-table">
+                <caption id="map-table-caption">Locations represented on the map for the active filters</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" id="map-table-header-1">Decree</th>
+                    <th scope="col" id="map-table-header-2">Modern location</th>
+                    <th scope="col" id="map-table-header-3">Receiver location</th>
+                    <th scope="col" id="map-table-header-4" class="num">Latitude</th>
+                    <th scope="col" id="map-table-header-5" class="num">Longitude</th>
+                  </tr>
+                </thead>
+                <tbody id="map-data-table-body"></tbody>
+              </table>
+            </div>
+          </details>
         </article>
 
         <!-- Right Sidebar: Decree List + Selected Decree Relational Dossier -->
@@ -1243,7 +1313,7 @@
               <h2 id="ui-list-title">Decree Register · Hüküm Listesi</h2>
               <span class="stamp-tag" id="list-count-badge">52 Records</span>
             </div>
-            <div id="decree-list" class="decree-list" role="list">
+            <div id="decree-list" class="decree-list" role="group" aria-labelledby="ui-list-title">
               <!-- Populated dynamically -->
             </div>
           </article>
@@ -1251,7 +1321,7 @@
           <article class="panel-leaf" id="selected-dossier-card">
             <div class="panel-head">
               <h2 id="ui-dossier-title">Decree Dossier · Hüküm Künyesi</h2>
-              <span class="stamp-tag" id="dossier-decree-badge">Decree #1</span>
+              <span class="stamp-tag" id="dossier-decree-badge" role="status" aria-live="polite" aria-atomic="true">Decree #1</span>
             </div>
             <div id="dossier-body" class="dossier-body">
               <!-- Populated dynamically -->
@@ -1270,8 +1340,12 @@
             <p class="chart-subtitle" id="chart-sub-1">Normalized Guruş (1 guruş = 80 akçe) across filtered decrees</p>
           </div>
           <div class="chart-box">
-            <canvas id="chart-financial-cat"></canvas>
+            <canvas id="chart-financial-cat" role="img" aria-labelledby="chart-title-1 chart-sub-1"></canvas>
           </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-1">View financial claims as a table</summary>
+            <div class="table-wrap" id="chart-financial-data"></div>
+          </details>
         </article>
 
         <article class="chart-card">
@@ -1280,8 +1354,12 @@
             <p class="chart-subtitle" id="chart-sub-2">Distribution of accused officials and private actors</p>
           </div>
           <div class="chart-box">
-            <canvas id="chart-defendants"></canvas>
+            <canvas id="chart-defendants" role="img" aria-labelledby="chart-title-2 chart-sub-2"></canvas>
           </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-2">View defendant counts as a table</summary>
+            <div class="table-wrap" id="chart-defendants-data"></div>
+          </details>
         </article>
 
         <article class="chart-card">
@@ -1290,8 +1368,12 @@
             <p class="chart-subtitle" id="chart-sub-3">Decree counts and spatial sites linked to Istanbul Dîvân</p>
           </div>
           <div class="chart-box">
-            <canvas id="chart-eyalets"></canvas>
+            <canvas id="chart-eyalets" role="img" aria-labelledby="chart-title-3 chart-sub-3"></canvas>
           </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-3">View decree and location counts as a table</summary>
+            <div class="table-wrap" id="chart-eyalets-data"></div>
+          </details>
         </article>
 
         <article class="chart-card">
@@ -1300,8 +1382,12 @@
             <p class="chart-subtitle" id="chart-sub-4">Imperial directive types issued across petitioner demographics</p>
           </div>
           <div class="chart-box">
-            <canvas id="chart-resolutions"></canvas>
+            <canvas id="chart-resolutions" role="img" aria-labelledby="chart-title-4 chart-sub-4"></canvas>
           </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-4">View resolution and petitioner counts as a table</summary>
+            <div class="table-wrap" id="chart-resolutions-data"></div>
+          </details>
         </article>
       </div>
 
@@ -1923,8 +2009,35 @@
         lblDefendant: `Defendant Status · Şikâyet Edilen`,
         lblEyalet: `Eyalet / Province · Eyalet`,
         lblRange: `Financial Range (Guruş) · Tutar Aralığı`,
+        lblMinGurus: `Minimum financial amount in Guruş`,
+        lblMaxGurus: `Maximum financial amount in Guruş`,
         lblReset: `Reset`,
         mapTitle: `Imperial Petition Geography · Şikâyet Coğrafyası`,
+        mapAccessibleDescription: `Use the decree register or the text table below to explore map locations without using the map. Country names shown on the map are also listed in the text alternative.`,
+        mapDataSummary: `View map locations and country names as text`,
+        mapCountryLabels: `Modern country labels shown on the map: Syria, Türkiye, Greece, Iraq, Bulgaria, Serbia, Hungary, Bosnia and Herzegovina, and North Macedonia.`,
+        mapTableCaption: `Locations represented on the map for the active filters`,
+        mapTableHeaders: [`Decree`, `Modern location`, `Receiver location`, `Latitude`, `Longitude`],
+        mapNoLocations: `No locations match the active filters.`,
+        chartDataSummaries: [
+          `View financial claims as a table`,
+          `View defendant counts as a table`,
+          `View decree and location counts as a table`,
+          `View resolution and petitioner counts as a table`
+        ],
+        chartDataCaptions: [
+          `Financial claims by complaint category`,
+          `Decree counts by defendant status`,
+          `Decrees and spatial sites by eyalet`,
+          `Dîvân resolutions by petitioner group`
+        ],
+        chartDataHeaders: [
+          [`Complaint category`, `Normalized Guruş`],
+          [`Defendant status`, `Decrees`],
+          [`Eyalet`, `Decrees`, `Spatial sites`],
+          [`Resolution`, `Male`, `Group / Collective`, `Female`]
+        ],
+        chartNoData: `No data matches the active filters.`,
         heatmapOff: `Heatmap Layer: Off`,
         heatmapOn: `Heatmap Layer: On`,
         fitMap: `Fit Empire View`,
@@ -1953,8 +2066,35 @@
         lblDefendant: `Şikâyet Edilen Statüsü`,
         lblEyalet: `Eyalet / Bölge`,
         lblRange: `Parasal Aralık (Guruş)`,
+        lblMinGurus: `En düşük tutar (Guruş)`,
+        lblMaxGurus: `En yüksek tutar (Guruş)`,
         lblReset: `Sıfırla`,
         mapTitle: `Şikâyet Coğrafyası ve Yoğunluk Haritası`,
+        mapAccessibleDescription: `Harita konumlarını haritayı kullanmadan incelemek için hüküm listesini veya aşağıdaki metin tablosunu kullanın. Haritadaki ülke adları da metin açıklamasında listelenmiştir.`,
+        mapDataSummary: `Harita konumlarını ve ülke adlarını metin olarak görüntüle`,
+        mapCountryLabels: `Haritada gösterilen güncel ülke adları: Suriye, Türkiye, Yunanistan, Irak, Bulgaristan, Sırbistan, Macaristan, Bosna-Hersek ve Kuzey Makedonya.`,
+        mapTableCaption: `Etkin filtrelere göre haritada gösterilen konumlar`,
+        mapTableHeaders: [`Hüküm`, `Güncel konum`, `Alıcı konumu`, `Enlem`, `Boylam`],
+        mapNoLocations: `Etkin filtrelere uygun konum bulunamadı.`,
+        chartDataSummaries: [
+          `Parasal talepleri tablo olarak görüntüle`,
+          `Şikâyet edilen kişi sayılarını tablo olarak görüntüle`,
+          `Eyalet ve konum sayılarını tablo olarak görüntüle`,
+          `Karar ve davacı sayılarını tablo olarak görüntüle`
+        ],
+        chartDataCaptions: [
+          `Şikâyet türüne göre parasal talepler`,
+          `Şikâyet edilen statüsüne göre hüküm sayıları`,
+          `Eyalete göre hükümler ve mekânsal konumlar`,
+          `Davacı grubuna göre Dîvân kararları`
+        ],
+        chartDataHeaders: [
+          [`Şikâyet türü`, `Normalize guruş`],
+          [`Şikâyet edilen statüsü`, `Hükümler`],
+          [`Eyalet`, `Hükümler`, `Mekânsal konumlar`],
+          [`Karar`, `Erkek`, `Grup / Topluluk`, `Kadın`]
+        ],
+        chartNoData: `Etkin filtrelere uygun veri bulunamadı.`,
         heatmapOff: `Isı Haritası: Kapalı`,
         heatmapOn: `Isı Haritası: Açık`,
         fitMap: `Tüm Coğrafyaya Odaklan`,
@@ -2307,6 +2447,7 @@
       renderDecreeList();
       renderSelectedDossier();
       renderMapMarkers();
+      renderAccessibleMapData();
       if (APP_STATE.activeView === `analytics`) {
         renderAnalyticsCharts();
       }
@@ -2446,6 +2587,55 @@
       `;
     }
 
+    function renderAccessibleMapData() {
+      const body = document.getElementById(`map-data-table-body`);
+      if (!body) return;
+
+      body.replaceChildren();
+      const locations = filteredDecrees.flatMap(d => d.locations.map(loc => ({
+        decreeId: d.decree_id,
+        locationName: loc.location_name,
+        receiverLocation: loc.receiver_location,
+        latitude: loc.lat,
+        longitude: loc.long
+      })));
+
+      if (!locations.length) {
+        const row = document.createElement(`tr`);
+        const cell = document.createElement(`td`);
+        cell.colSpan = 5;
+        cell.textContent = I18N[APP_STATE.lang].mapNoLocations;
+        row.appendChild(cell);
+        body.appendChild(row);
+        return;
+      }
+
+      const formatCoordinate = value => {
+        if (value === null || value === undefined || value === ``) return ``;
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue.toFixed(4) : String(value);
+      };
+
+      locations.forEach(location => {
+        const row = document.createElement(`tr`);
+        const values = [
+          `#${location.decreeId}`,
+          location.locationName,
+          location.receiverLocation,
+          formatCoordinate(location.latitude),
+          formatCoordinate(location.longitude)
+        ];
+
+        values.forEach((value, index) => {
+          const cell = document.createElement(`td`);
+          cell.textContent = String(value ?? ``);
+          if (index >= 3) cell.classList.add(`num`);
+          row.appendChild(cell);
+        });
+        body.appendChild(row);
+      });
+    }
+
     function renderMapMarkers() {
       if (!leafletMap || !markerGroup) return;
       markerGroup.clearLayers();
@@ -2495,7 +2685,10 @@
       APP_STATE.heatmapOn = !APP_STATE.heatmapOn;
       const btn = document.getElementById(`btn-heatmap`);
       const lbl = document.getElementById(`lbl-heatmap`);
-      if (btn) btn.classList.toggle(`active`, APP_STATE.heatmapOn);
+      if (btn) {
+        btn.classList.toggle(`active`, APP_STATE.heatmapOn);
+        btn.setAttribute(`aria-pressed`, String(APP_STATE.heatmapOn));
+      }
       if (lbl) {
         const t = I18N[APP_STATE.lang];
         lbl.textContent = APP_STATE.heatmapOn ? t.heatmapOn : t.heatmapOff;
@@ -2529,6 +2722,9 @@
       const listEl = document.getElementById(`decree-list`);
       const badgeEl = document.getElementById(`list-count-badge`);
       if (!listEl) return;
+      const focusedDecreeId = document.activeElement?.classList?.contains(`decree-item`)
+        ? document.activeElement.dataset.decreeId
+        : null;
 
       if (badgeEl) {
         badgeEl.textContent = APP_STATE.lang === `tr`
@@ -2549,12 +2745,13 @@
       listEl.innerHTML = [...filteredDecrees]
         .sort((a, b) => b.decree_id - a.decree_id)
         .map(d => {
-        const selected = d.decree_id === APP_STATE.selectedDecreeId ? `selected` : ``;
+        const isSelected = d.decree_id === APP_STATE.selectedDecreeId;
+        const selected = isSelected ? `selected` : ``;
         const amt = d.financial.normalized_gurus > 0
           ? `${d.financial.normalized_gurus.toLocaleString(`en-US`)} gr.`
           : `Qual.`;
         return `
-          <button type="button" class="decree-item ${selected}" role="listitem" onclick="selectDecree(${d.decree_id}, true)">
+          <button type="button" class="decree-item ${selected}" data-decree-id="${d.decree_id}" aria-pressed="${isSelected}" onclick="selectDecree(${d.decree_id}, true)">
             <div class="decree-item-top">
               <span class="decree-id-badge">Hüküm #${d.decree_id} · ${d.hierarchy.kaza}</span>
               <span class="stamp-tag">${d.std_complaint}</span>
@@ -2567,6 +2764,12 @@
           </button>
         `;
       }).join(``);
+
+      if (focusedDecreeId) {
+        const focusedButton = Array.from(listEl.querySelectorAll(`.decree-item`))
+          .find(button => button.dataset.decreeId === focusedDecreeId);
+        focusedButton?.focus();
+      }
     }
 
     function selectDecree(decreeId, flyTo) {
@@ -2660,9 +2863,54 @@
       chartInstances = {};
     }
 
+    function renderAccessibleDataTable(containerId, captionText, headers, rows) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const table = document.createElement(`table`);
+      table.className = `data-table`;
+
+      const caption = document.createElement(`caption`);
+      caption.textContent = captionText;
+      table.appendChild(caption);
+
+      const thead = document.createElement(`thead`);
+      const headerRow = document.createElement(`tr`);
+      headers.forEach(headerText => {
+        const header = document.createElement(`th`);
+        header.scope = `col`;
+        header.textContent = headerText;
+        headerRow.appendChild(header);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement(`tbody`);
+      rows.forEach(values => {
+        const row = document.createElement(`tr`);
+        values.forEach(value => {
+          const cell = document.createElement(`td`);
+          cell.textContent = String(value ?? ``);
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+      if (!rows.length) {
+        const row = document.createElement(`tr`);
+        const cell = document.createElement(`td`);
+        cell.colSpan = headers.length;
+        cell.textContent = I18N[APP_STATE.lang].chartNoData;
+        row.appendChild(cell);
+        tbody.appendChild(row);
+      }
+      table.appendChild(tbody);
+      container.replaceChildren(table);
+    }
+
     function renderAnalyticsCharts() {
-      if (typeof Chart === `undefined`) return;
       destroyCharts();
+      const canRenderCharts = typeof Chart !== `undefined`;
+      const chartText = I18N[APP_STATE.lang];
 
       const textCol = getToken(`--on-surface`);
       const mutedCol = getToken(`--on-surface-variant`);
@@ -2679,9 +2927,15 @@
         catSums[d.std_complaint] = (catSums[d.std_complaint] || 0) + getAggregateClaimGurus(d.financial);
       });
       const catEntries = Object.entries(catSums).sort((a, b) => b[1] - a[1]);
+      renderAccessibleDataTable(
+        `chart-financial-data`,
+        chartText.chartDataCaptions[0],
+        chartText.chartDataHeaders[0],
+        catEntries.map(([category, amount]) => [category, Math.round(amount)])
+      );
 
       const ctx1 = document.getElementById(`chart-financial-cat`);
-      if (ctx1) {
+      if (ctx1 && canRenderCharts) {
         chartInstances.c1 = new Chart(ctx1, {
           type: `bar`,
           data: {
@@ -2713,9 +2967,15 @@
         defCounts[k] = (defCounts[k] || 0) + 1;
       });
       const defEntries = Object.entries(defCounts).sort((a, b) => b[1] - a[1]);
+      renderAccessibleDataTable(
+        `chart-defendants-data`,
+        chartText.chartDataCaptions[1],
+        chartText.chartDataHeaders[1],
+        defEntries
+      );
 
       const ctx2 = document.getElementById(`chart-defendants`);
-      if (ctx2) {
+      if (ctx2 && canRenderCharts) {
         chartInstances.c2 = new Chart(ctx2, {
           type: `doughnut`,
           data: {
@@ -2749,9 +3009,15 @@
         eyaletStats[e].sites += d.locations.length;
       });
       const eyaletEntries = Object.entries(eyaletStats).sort((a, b) => b[1].decrees - a[1].decrees);
+      renderAccessibleDataTable(
+        `chart-eyalets-data`,
+        chartText.chartDataCaptions[2],
+        chartText.chartDataHeaders[2],
+        eyaletEntries.map(([eyalet, stats]) => [eyalet, stats.decrees, stats.sites])
+      );
 
       const ctx3 = document.getElementById(`chart-eyalets`);
-      if (ctx3) {
+      if (ctx3 && canRenderCharts) {
         chartInstances.c3 = new Chart(ctx3, {
           type: `bar`,
           data: {
@@ -2788,9 +3054,20 @@
         const sumB = b[1].male + b[1].group + b[1].female;
         return sumB - sumA;
       }).slice(0, 7);
+      renderAccessibleDataTable(
+        `chart-resolutions-data`,
+        chartText.chartDataCaptions[3],
+        chartText.chartDataHeaders[3],
+        resEntries.map(([resolution, counts]) => [
+          resolution,
+          counts.male,
+          counts.group,
+          counts.female
+        ])
+      );
 
       const ctx4 = document.getElementById(`chart-resolutions`);
-      if (ctx4) {
+      if (ctx4 && canRenderCharts) {
         chartInstances.c4 = new Chart(ctx4, {
           type: `bar`,
           data: {
@@ -2939,7 +3216,9 @@
     function switchView(viewName) {
       APP_STATE.activeView = viewName;
       document.querySelectorAll(`.tab-btn`).forEach(btn => {
-        btn.classList.toggle(`active`, btn.dataset.view === viewName);
+        const isActive = btn.dataset.view === viewName;
+        btn.classList.toggle(`active`, isActive);
+        btn.setAttribute(`aria-pressed`, String(isActive));
       });
       document.querySelectorAll(`.view-section`).forEach(sec => {
         sec.classList.toggle(`active`, sec.id === `view-${viewName}`);
@@ -2963,7 +3242,9 @@
       document.documentElement.setAttribute(`data-theme`, APP_STATE.theme);
       const t = I18N[APP_STATE.lang];
       const lbl = document.getElementById(`lbl-theme`);
+      const btn = document.getElementById(`btn-theme`);
       if (lbl) lbl.textContent = APP_STATE.theme === `dark` ? t.themeLight : t.themeDark;
+      if (btn) btn.setAttribute(`aria-pressed`, String(APP_STATE.theme === `dark`));
       renderLegend();
       updateMapThemeStyles();
       if (APP_STATE.activeView === `analytics`) {
@@ -2979,6 +3260,7 @@
 
     function applyLanguageDom() {
       const t = I18N[APP_STATE.lang];
+      document.documentElement.lang = APP_STATE.lang === `tr` ? `tr` : `en`;
       const mapIds = {
         'ui-kicker': t.kicker,
         'ui-main-title': t.title,
@@ -3001,6 +3283,10 @@
         'lbl-range': t.lblRange,
         'lbl-reset': t.lblReset,
         'ui-map-title': t.mapTitle,
+        'map-accessible-description': t.mapAccessibleDescription,
+        'map-data-summary': t.mapDataSummary,
+        'map-country-labels': t.mapCountryLabels,
+        'map-table-caption': t.mapTableCaption,
         'lbl-heatmap': APP_STATE.heatmapOn ? t.heatmapOn : t.heatmapOff,
         'lbl-fit-map': t.fitMap,
         'ui-list-title': t.listTitle,
@@ -3011,8 +3297,22 @@
         const el = document.getElementById(id);
         if (el) el.textContent = txt;
       });
+      document.getElementById(`filter-min-gurus`)
+        ?.setAttribute(`aria-label`, t.lblMinGurus);
+      document.getElementById(`filter-max-gurus`)
+        ?.setAttribute(`aria-label`, t.lblMaxGurus);
+      t.mapTableHeaders.forEach((text, index) => {
+        const header = document.getElementById(`map-table-header-${index + 1}`);
+        if (header) header.textContent = text;
+      });
+      t.chartDataSummaries.forEach((text, index) => {
+        const summary = document.getElementById(`chart-data-summary-${index + 1}`);
+        if (summary) summary.textContent = text;
+      });
       updateKpis();
       renderDecreeList();
+      renderAccessibleMapData();
+      if (APP_STATE.activeView === `analytics`) renderAnalyticsCharts();
       const statusEl = document.getElementById(`filter-status-text`);
       if (statusEl) {
         statusEl.textContent = APP_STATE.lang === `tr`

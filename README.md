@@ -55,6 +55,13 @@ Open <http://127.0.0.1:5000> in a browser. The root-level `index.html` is retain
 - Run `python scripts/export_data.py` to rebuild `data/processed/dashboard_data.json`.
 - Run `python scripts/analyze.py` to rebuild the GIS CSV and SQLite database in `data/processed/`, and charts in `assets/`.
 
+## Accessibility
+
+- Use the decree list and expandable map table as text alternatives to the map.
+- Open each chart's table to read its data without relying on color or graphics.
+- The interface supports keyboard focus, announces filter and selection updates, and respects reduced-motion preferences.
+- These improvements are not a legal compliance certification. Test with keyboard and screen-reader users and verify color contrast before public release.
+
 ## Citation & Archival Source
 
 Data transcribed and standardized from the **Presidency of State Archives (Devlet Arşivleri Başkanlığı)**: *1 Numaralı Şikâyet Defteri (1059 / 1649–1650)*.
