@@ -598,6 +598,25 @@
       font-family: var(--font-body);
     }
 
+    .leaflet-tooltip.country-name-label {
+      background: color-mix(in srgb, var(--surface-container-low) 88%, transparent);
+      border: 1px solid var(--outline-variant);
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
+      color: var(--primary);
+      font-family: var(--font-label);
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 2px 5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .leaflet-tooltip.country-name-label::before {
+      display: none;
+    }
+
     .map-legend {
       padding: var(--space-sm) var(--space-lg);
       background: var(--surface-container);
@@ -1972,6 +1991,17 @@
     let markerByDecree = new Map();
     let heatLayerInstance = null;
     let chartInstances = {};
+    const MODERN_COUNTRY_LABELS = new Map([
+      [`Syria`, { name: `Syria`, position: [35.2, 38.2] }],
+      [`Turkey`, { name: `Türkiye`, position: [39.2, 35.6] }],
+      [`Greece`, { name: `Greece`, position: [39.1, 22.8] }],
+      [`Iraq`, { name: `Iraq`, position: [33.2, 44.1] }],
+      [`Bulgaria`, { name: `Bulgaria`, position: [42.6, 25.2] }],
+      [`Serbia`, { name: `Serbia`, position: [45.0, 21.6] }],
+      [`Hungary`, { name: `Hungary`, position: [46.2, 19.8] }],
+      [`Bosnia and Herz.`, { name: `Bosnia and Herzegovina`, position: [44.3, 19.7] }],
+      [`Macedonia`, { name: `North Macedonia`, position: [41.6, 21.7] }]
+    ]);
 
     // =========================================================================
     // 6. TOKEN & COLOR HELPERS (Read live from :root / [data-theme])
@@ -1983,6 +2013,28 @@
     function getCategoryColor(stdCat) {
       const varName = CATEGORY_COLORS_VAR[stdCat] || `--data-1`;
       return getToken(varName) || `currentColor`;
+    }
+
+    function renderCountryLabels(features) {
+      const countryLabelLayer = L.layerGroup();
+
+      features.forEach(feature => {
+        const label = MODERN_COUNTRY_LABELS.get(feature.properties?.name);
+        if (!label) return;
+
+        L.tooltip({
+          permanent: true,
+          direction: `center`,
+          className: `country-name-label`,
+          interactive: false,
+          opacity: 1
+        })
+          .setLatLng(label.position)
+          .setContent(label.name)
+          .addTo(countryLabelLayer);
+      });
+
+      countryLabelLayer.addTo(leafletMap);
     }
 
     // =========================================================================
@@ -2142,6 +2194,7 @@
             }
           }).addTo(leafletMap);
           worldVectorLayer.bringToBack();
+          renderCountryLabels(geo.features);
           renderMapMarkers();
           leafletMap.invalidateSize();
         })
