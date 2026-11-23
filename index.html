@@ -3146,7 +3146,7 @@
     // 16. BOOTSTRAP
     // =========================================================================
     async function loadDashboardTables() {
-      const response = await fetch(`./dashboard_data.json`);
+      const response = await fetch(`./data/processed/dashboard_data.json`);
       if (!response.ok) {
         throw new Error(`Data request failed (${response.status})`);
       }

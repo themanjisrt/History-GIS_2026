@@ -1073,7 +1073,7 @@
     },
     {
       "location_id": 75,
-      "decree_id": 57,
+      "decree_id": 57.0,
       "location_name": "Kuzey Makedonya (Pirlepe)",
       "receiver_location": "Kalkandelen",
       "lat": 42.0097,
@@ -1589,12 +1589,12 @@
     },
     {
       "receiver_id": 99,
-      "decree_id": 57,
+      "decree_id": 57.0,
       "receiver_title": "Kalkandelen Kadısı"
     },
     {
       "receiver_id": 100,
-      "decree_id": 57,
+      "decree_id": 57.0,
       "receiver_title": "Rumeli Beylerbeyisi Mustafa Paşa"
     },
     {
