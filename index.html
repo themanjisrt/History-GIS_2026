@@ -2505,7 +2505,9 @@
         return;
       }
 
-      listEl.innerHTML = filteredDecrees.map(d => {
+      listEl.innerHTML = [...filteredDecrees]
+        .sort((a, b) => b.decree_id - a.decree_id)
+        .map(d => {
         const selected = d.decree_id === APP_STATE.selectedDecreeId ? `selected` : ``;
         const amt = d.financial.normalized_gurus > 0
           ? `${d.financial.normalized_gurus.toLocaleString(`en-US`)} gr.`
