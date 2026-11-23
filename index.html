@@ -1992,15 +1992,15 @@
     let heatLayerInstance = null;
     let chartInstances = {};
     const MODERN_COUNTRY_LABELS = new Map([
-      [`Syria`, { name: `Syria`, position: [35.2, 38.2] }],
-      [`Turkey`, { name: `Türkiye`, position: [39.2, 35.6] }],
-      [`Greece`, { name: `Greece`, position: [39.1, 22.8] }],
-      [`Iraq`, { name: `Iraq`, position: [33.2, 44.1] }],
-      [`Bulgaria`, { name: `Bulgaria`, position: [42.6, 25.2] }],
-      [`Serbia`, { name: `Serbia`, position: [45.0, 21.6] }],
-      [`Hungary`, { name: `Hungary`, position: [46.2, 19.8] }],
-      [`Bosnia and Herz.`, { name: `Bosnia and Herzegovina`, position: [44.3, 19.7] }],
-      [`Macedonia`, { name: `North Macedonia`, position: [41.6, 21.7] }]
+      [`Syria`, `Syria`],
+      [`Turkey`, `Türkiye`],
+      [`Greece`, `Greece`],
+      [`Iraq`, `Iraq`],
+      [`Bulgaria`, `Bulgaria`],
+      [`Serbia`, `Serbia`],
+      [`Hungary`, `Hungary`],
+      [`Bosnia and Herz.`, `Bosnia and Herzegovina`],
+      [`Macedonia`, `North Macedonia`]
     ]);
 
     // =========================================================================
@@ -2013,28 +2013,6 @@
     function getCategoryColor(stdCat) {
       const varName = CATEGORY_COLORS_VAR[stdCat] || `--data-1`;
       return getToken(varName) || `currentColor`;
-    }
-
-    function renderCountryLabels(features) {
-      const countryLabelLayer = L.layerGroup();
-
-      features.forEach(feature => {
-        const label = MODERN_COUNTRY_LABELS.get(feature.properties?.name);
-        if (!label) return;
-
-        L.tooltip({
-          permanent: true,
-          direction: `center`,
-          className: `country-name-label`,
-          interactive: false,
-          opacity: 1
-        })
-          .setLatLng(label.position)
-          .setContent(label.name)
-          .addTo(countryLabelLayer);
-      });
-
-      countryLabelLayer.addTo(leafletMap);
     }
 
     // =========================================================================
@@ -2191,10 +2169,20 @@
                 color: getToken(`--map-border`),
                 weight: 0.75
               };
+            },
+            onEachFeature: function (feature, layer) {
+              const countryName = MODERN_COUNTRY_LABELS.get(feature.properties?.name);
+              if (!countryName) return;
+
+              layer.bindTooltip(countryName, {
+                permanent: false,
+                sticky: true,
+                direction: `top`,
+                className: `country-name-label`
+              });
             }
           }).addTo(leafletMap);
           worldVectorLayer.bringToBack();
-          renderCountryLabels(geo.features);
           renderMapMarkers();
           leafletMap.invalidateSize();
         })
