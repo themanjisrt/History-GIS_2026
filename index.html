@@ -326,7 +326,7 @@
     }
 
     [data-theme="dark"] .util-btn-accent {
-      color: #F3F4F6;
+      color: var(--on-primary);
     }
 
     .util-btn-accent:hover {
@@ -3114,22 +3114,22 @@
       },
       {
         key: `defendants_table`,
-        tr: `Şikâyet Edilenler (Yeni Tablo 4)`,
+        tr: `Şikâyet Edilenler`,
         desc: `Accused officials and private actors (defendant_id PK, decree_id FK, defendant_name, category, status)`
       },
       {
         key: `financial_claims_table`,
-        tr: `Parasal Miktarlar (Yeni Tablo 5)`,
+        tr: `Parasal Miktarlar`,
         desc: `Guruş–Akçe financial claims & archival coding (claim_id PK, decree_id FK, normalized_gurus, claim_type)`
       },
       {
         key: `admin_hierarchy_table`,
-        tr: `Eyalet–Sancak–Kaza–Karye (Yeni Tablo 6)`,
+        tr: `Eyalet–Sancak–Kaza–Karye`,
         desc: `Ottoman administrative hierarchy grounded in Yer Adları Sözlüğü (hier_id PK, decree_id FK, eyalet, sancak, kaza)`
       },
       {
         key: `resolutions_table`,
-        tr: `Dîvân Kararları (Yeni Tablo 7)`,
+        tr: `Dîvân Kararları `,
         desc: `Imperial Council legal directives and enforcement authorities (resolution_id PK, decree_id FK, directive_type)`
       }
     ];
