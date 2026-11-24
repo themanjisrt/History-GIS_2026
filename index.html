@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="dashboard">
+  <meta name="design-style" content="charter">
+  <title>Ottoman HGIS Web Explorer (Python-powered)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+  <header class="title-band">
+    <div class="title-band-inner">
+      <div>
+        <p class="kicker" id="ui-kicker">1 NUMARALI ŞİKÂYET DEFTERİ · H. 1059–1060 / 1649–1650 CE · 7 RELATIONAL TABLES</p>
+        <h1 id="ui-main-title">Ottoman HGIS Web Explorer (1649–1650)</h1>
+        <p class="lede" id="ui-main-lede">
+          Spatial and relational exploration of imperial complaint decrees (<em>Mühimme-i Şikâyet</em>), connecting petitioners, accused officials (<em>Şikâyet Edilenler</em>), financial claims (<em>Guruş–Akçe</em>), administrative hierarchy (<em>Eyalet–Sancak–Kaza–Karye</em>), and <em>Dîvân-ı Hümâyûn</em> resolutions.
+        </p>
+      </div>
+      <div class="header-controls">
+        <div class="utility-row">
+          <button type="button" class="util-btn" id="btn-lang" onclick="toggleLanguage()">
+            <i data-lucide="languages" aria-hidden="true"></i>
+            <span id="lbl-lang">Türkçe Arayüz</span>
+          </button>
+          <button type="button" class="util-btn" id="btn-theme" aria-pressed="false" onclick="toggleTheme()">
+            <i data-lucide="moon" aria-hidden="true"></i>
+            <span id="lbl-theme">Dark Mode</span>
+          </button>
+          <button type="button" class="util-btn util-btn-accent" id="btn-export-csv" onclick="exportFilteredCsv()">
+            <i data-lucide="download" aria-hidden="true"></i>
+            <span id="lbl-export">Export CSV</span>
+          </button>
+        </div>
+        <nav class="nav-tabs" aria-label="Explorer Views">
+          <button type="button" class="tab-btn active" data-view="explorer" aria-controls="view-explorer" aria-pressed="true" onclick="switchView('explorer')">
+            <i data-lucide="map" aria-hidden="true"></i>
+            <span id="tab-lbl-explorer">Spatial Map &amp; Decrees</span>
+          </button>
+          <button type="button" class="tab-btn" data-view="analytics" aria-controls="view-analytics" aria-pressed="false" onclick="switchView('analytics')">
+            <i data-lucide="bar-chart-3" aria-hidden="true"></i>
+            <span id="tab-lbl-analytics">Analytics &amp; Breakdown</span>
+          </button>
+          <button type="button" class="tab-btn" data-view="schema" aria-controls="view-schema" aria-pressed="false" onclick="switchView('schema')">
+            <i data-lucide="database" aria-hidden="true"></i>
+            <span id="tab-lbl-schema">7-Table Relational DB</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <!-- Executive KPI Metrics Header -->
+    <section class="kpi-grid" aria-label="Executive KPI Summary">
+      <article class="figure-card">
+        <div class="figure-label">
+          <span id="kpi-lbl-decrees">Total Decrees · Toplam Hüküm</span>
+        </div>
+        <p class="figure-value" id="kpi-val-decrees">52</p>
+        <p class="figure-sub" id="kpi-sub-decrees">74 spatial points · Muharrem 1059</p>
+      </article>
+
+      <article class="figure-card">
+        <div class="figure-label">
+          <span id="kpi-lbl-gurus">Total Claimed Guruş · Toplam Guruş</span>
+        </div>
+        <p class="figure-value" id="kpi-val-gurus">30,440</p>
+        <p class="figure-sub" id="kpi-sub-gurus">Quantified claims include archival estimates; unit rates excluded (1 guruş = 80 akçe)</p>
+      </article>
+
+      <article class="figure-card">
+        <div class="figure-label">
+          <span id="kpi-lbl-accused">Top Accused Category · En Çok Şikâyet Edilen</span>
+        </div>
+        <p class="figure-value" id="kpi-val-accused">Judicial / Kadi</p>
+        <p class="figure-sub" id="kpi-sub-accused">0 decrees in active filter</p>
+      </article>
+
+      <article class="figure-card">
+        <div class="figure-label">
+          <span id="kpi-lbl-locations">Active Locations · Aktif Kaza / Konum</span>
+        </div>
+        <p class="figure-value" id="kpi-val-locations">47</p>
+        <p class="figure-sub" id="kpi-sub-locations">Across 10 imperial eyalets</p>
+      </article>
+    </section>
+
+    <!-- Multi-Faceted Filtering Panel -->
+    <section class="filter-panel" aria-label="Multi-Faceted Dataset Filters">
+      <div class="filter-header">
+        <h2 class="filter-title" id="ui-filter-title">Multi-Faceted Relational Filters · Çok Boyutlu Filtreleme</h2>
+        <div class="filter-meta">
+          <span id="filter-status-text" role="status" aria-live="polite" aria-atomic="true">Showing 52 of 52 decrees</span>
+          <span id="export-feedback" aria-live="polite"></span>
+        </div>
+      </div>
+      <div class="filter-controls">
+        <div class="field-group">
+          <label for="filter-search" id="lbl-search">Search · Arama (ID, Name, Kaza)</label>
+          <input type="text" id="filter-search" class="field-input" placeholder="e.g. Gölbazarı, Kadi, 6330…" oninput="applyFilters()">
+        </div>
+
+        <div class="field-group">
+          <label for="filter-complaint" id="lbl-complaint">Complaint Type · Şikâyet Türü</label>
+          <select id="filter-complaint" class="field-select" onchange="applyFilters()">
+            <option value="ALL">All Categories · Tüm Konular</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="filter-defendant" id="lbl-defendant">Defendant Status · Şikâyet Edilen</label>
+          <select id="filter-defendant" class="field-select" onchange="applyFilters()">
+            <option value="ALL">All Categories · Tüm Statüler</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="filter-eyalet" id="lbl-eyalet">Eyalet / Province · Eyalet</label>
+          <select id="filter-eyalet" class="field-select" onchange="applyFilters()">
+            <option value="ALL">All Eyalets · Tüm Eyaletler</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="filter-min-gurus" id="lbl-range">Financial Range (Guruş) · Tutar Aralığı</label>
+          <div class="range-pair">
+            <input type="number" id="filter-min-gurus" class="field-input" aria-label="Minimum financial amount in Guruş" min="0" step="50" placeholder="Min" oninput="applyFilters()">
+            <span class="range-sep">–</span>
+            <input type="number" id="filter-max-gurus" class="field-input" aria-label="Maximum financial amount in Guruş" min="0" step="50" placeholder="Max" oninput="applyFilters()">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label" id="lbl-actions">Actions · İşlem</span>
+          <button type="button" id="btn-reset-filters" class="btn-secondary" onclick="resetFilters()">
+            <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+            <span id="lbl-reset">Reset</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 1: SPATIAL MAP & DECREES -->
+    <section id="view-explorer" class="view-section active" aria-label="Spatial Map and Decree Explorer">
+      <div class="explorer-grid">
+        <!-- Map Panel -->
+        <article class="panel-leaf">
+          <div class="panel-head">
+            <h2 id="ui-map-title">Imperial Petition Geography · Şikâyet Coğrafyası</h2>
+            <div class="panel-toolbar">
+              <button type="button" id="btn-heatmap" class="btn-secondary" aria-pressed="false" onclick="toggleHeatmap()">
+                <i data-lucide="flame" aria-hidden="true"></i>
+                <span id="lbl-heatmap">Heatmap Layer: Off</span>
+              </button>
+              <button type="button" id="btn-fit-map" class="btn-secondary" onclick="fitMapToFiltered()">
+                <i data-lucide="maximize-2" aria-hidden="true"></i>
+                <span id="lbl-fit-map">Fit Empire View</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="ottoman-map" role="region" aria-label="Interactive vector map of Ottoman Empire petitions" aria-describedby="map-accessible-description"></div>
+
+          <div class="map-legend" id="map-legend">
+            <!-- Populated dynamically from category colors -->
+          </div>
+          <p class="map-accessibility-note" id="map-accessible-description">
+            Use the decree register or the text table below to explore map locations without using the map. Country names shown on the map are also listed in the text alternative.
+          </p>
+          <details class="map-data-alternative">
+            <summary id="map-data-summary">View map locations and country names as text</summary>
+            <p id="map-country-labels">
+              Modern country labels shown on the map: Syria, Türkiye, Greece, Iraq, Bulgaria, Serbia, Hungary, Bosnia and Herzegovina, and North Macedonia.
+            </p>
+            <div class="table-wrap">
+              <table class="data-table" id="map-data-table">
+                <caption id="map-table-caption">Locations represented on the map for the active filters</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" id="map-table-header-1">Decree</th>
+                    <th scope="col" id="map-table-header-2">Modern location</th>
+                    <th scope="col" id="map-table-header-3">Receiver location</th>
+                    <th scope="col" id="map-table-header-4" class="num">Latitude</th>
+                    <th scope="col" id="map-table-header-5" class="num">Longitude</th>
+                  </tr>
+                </thead>
+                <tbody id="map-data-table-body"></tbody>
+              </table>
+            </div>
+          </details>
+        </article>
+
+        <!-- Right Sidebar: Decree List + Selected Decree Relational Dossier -->
+        <div class="decree-sidebar">
+          <article class="panel-leaf">
+            <div class="panel-head">
+              <h2 id="ui-list-title">Decree Register · Hüküm Listesi</h2>
+              <span class="stamp-tag" id="list-count-badge">52 Records</span>
+            </div>
+            <div id="decree-list" class="decree-list" role="group" aria-labelledby="ui-list-title">
+              <!-- Populated dynamically -->
+            </div>
+          </article>
+
+          <article class="panel-leaf" id="selected-dossier-card">
+            <div class="panel-head">
+              <h2 id="ui-dossier-title">Decree Dossier · Hüküm Künyesi</h2>
+              <span class="stamp-tag" id="dossier-decree-badge" role="status" aria-live="polite" aria-atomic="true">Decree #1</span>
+            </div>
+            <div id="dossier-body" class="dossier-body">
+              <!-- Populated dynamically -->
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: ANALYTICS & BREAKDOWN -->
+    <section id="view-analytics" class="view-section" aria-label="Financial and Defendant Analytics">
+      <div class="analytics-grid">
+        <article class="chart-card">
+          <div class="chart-title-wrap">
+            <h3 id="chart-title-1">Financial Claims by Complaint Category · Konulara Göre Guruş</h3>
+            <p class="chart-subtitle" id="chart-sub-1">Normalized Guruş (1 guruş = 80 akçe) across filtered decrees</p>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-financial-cat" role="img" aria-labelledby="chart-title-1 chart-sub-1"></canvas>
+          </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-1">View financial claims as a table</summary>
+            <div class="table-wrap" id="chart-financial-data"></div>
+          </details>
+        </article>
+
+        <article class="chart-card">
+          <div class="chart-title-wrap">
+            <h3 id="chart-title-2">Accused Defendant Breakdown · Şikâyet Edilen Kategorileri</h3>
+            <p class="chart-subtitle" id="chart-sub-2">Distribution of accused officials and private actors</p>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-defendants" role="img" aria-labelledby="chart-title-2 chart-sub-2"></canvas>
+          </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-2">View defendant counts as a table</summary>
+            <div class="table-wrap" id="chart-defendants-data"></div>
+          </details>
+        </article>
+
+        <article class="chart-card">
+          <div class="chart-title-wrap">
+            <h3 id="chart-title-3">Spatial Connectivity by Eyalet · Eyaletlere Göre Hüküm Yoğunluğu</h3>
+            <p class="chart-subtitle" id="chart-sub-3">Decree counts and spatial sites linked to Istanbul Dîvân</p>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-eyalets" role="img" aria-labelledby="chart-title-3 chart-sub-3"></canvas>
+          </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-3">View decree and location counts as a table</summary>
+            <div class="table-wrap" id="chart-eyalets-data"></div>
+          </details>
+        </article>
+
+        <article class="chart-card">
+          <div class="chart-title-wrap">
+            <h3 id="chart-title-4">Dîvân Resolutions &amp; Petitioner Profile · Kararlar ve Davacılar</h3>
+            <p class="chart-subtitle" id="chart-sub-4">Imperial directive types issued across petitioner demographics</p>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-resolutions" role="img" aria-labelledby="chart-title-4 chart-sub-4"></canvas>
+          </div>
+          <details class="chart-data-alternative">
+            <summary id="chart-data-summary-4">View resolution and petitioner counts as a table</summary>
+            <div class="table-wrap" id="chart-resolutions-data"></div>
+          </details>
+        </article>
+      </div>
+
+      <article class="hist-note">
+        <div>
+          <h3 id="hist-title-1">Comparative HGIS Methodology &amp; Relational Model</h3>
+          <p id="hist-p-1">
+            Drawing on the 1649–1650 (H. 1059–1060) separation of <em>Şikâyet Defterleri</em> from the <em>Mühimme Defterleri</em>, this explorer extends the three core archival tables (<em>petitioners_table</em>, <em>locations_table</em>, <em>receiver_table</em>) with four relational schemas keyed by <code>decree_id</code>: Defendants (<em>Şikâyet Edilenler</em>), Financial Claims (<em>Parasal Miktarlar</em>), Administrative Hierarchy (<em>Eyalet–Sancak–Kaza–Karye</em>), and Imperial Directives (<em>Dîvân Kararları</em>).
+          </p>
+          <p id="hist-p-2">
+            Place-name standardization and sancak/eyalet assignments cross-reference <em>Kaynaklarıyla Osmanlı Coğrafyası Yer Adları Sözlüğü</em> alongside the spatial frameworks of <em>Mapping Ottoman Epirus (MapOE)</em> and <em>The 1832/33 Ottoman Property Survey of Cyprus</em>.
+          </p>
+        </div>
+        <div>
+          <h3 id="hist-title-2">Global Petitioning Historiography &amp; Monetary Notes</h3>
+          <p id="hist-p-3">
+            By mapping non-Muslim subjects (<em>dhimmi</em>), women (e.g., Ayşe Hatun #2, Mümine #18, Fatma Hatun #25), collective villages, and provincial officials relative to imperial courier routes, the dataset brings Ottoman empirical evidence into dialogue with early modern petitioning scholarship (Brodie Waddell, David Zaret, Richard Huzzey).
+          </p>
+          <p id="hist-p-4">
+            <strong>Currency Note:</strong> Explicit sums from the register (e.g., 6,330 guruş in Decree #27; 2,200 guruş in Decree #30; 4 akçe/unit customs fee in Decree #21) are recorded verbatim and distinguished from unquantified qualitative claims (marked <em>Unquantified / Gayr-ı Muharrer</em>) or standardized archival conversions (1 esedî guruş = 80 akçe).
+          </p>
+        </div>
+      </article>
+    </section>
+
+    <!-- VIEW 3: 7-TABLE RELATIONAL DATABASE EXPLORER -->
+    <section id="view-schema" class="view-section" aria-label="Seven-Table Relational Database Explorer">
+      <div class="schema-cards" id="schema-selector">
+        <!-- Populated dynamically -->
+      </div>
+
+      <article class="panel-leaf">
+        <div class="panel-head">
+          <div>
+            <h2 id="schema-active-title">petitioners_table</h2>
+            <p class="chart-subtitle" id="schema-active-desc">Core archival petitioners linked by foreign key decree_id</p>
+          </div>
+          <div class="panel-toolbar">
+            <span class="stamp-tag" id="schema-row-count">52 rows</span>
+            <button type="button" class="btn-secondary" onclick="exportActiveTableCsv()">
+              <i data-lucide="file-spreadsheet" aria-hidden="true"></i>
+              <span id="lbl-export-table">Export Active Table</span>
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="schema-table">
+            <thead id="schema-thead"></thead>
+            <tbody id="schema-tbody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer-note">
+      <span id="footer-sources">
+        Sources: BOA 1 Numaralı Şikâyet Defteri (H. 1059 / 1649 CE, Decrees 1–57); Kaynaklarıyla Osmanlı Coğrafyası Yer Adları Sözlüğü; Natural Earth 50m Vector Boundaries (public domain).
+      </span>
+      <span id="footer-currency">
+        Relational Key: decree_id · Currency Reference: 1 Esedî Guruş ≈ 80 Akçe (mid-17th c.)
+      </span>
+    </footer>
+  </main>
+
+  <api-shim></api-shim>
+
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>

@@ -1,19 +1,25 @@
 ### Python Veri İşleme Kodu
 
-import numpy as np
+import sqlite3
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 
 # -----------------------------------------------------------------------------
 # 1. VERİLERİN YÜKLENMESİ (DATA INGESTION)
 # -----------------------------------------------------------------------------
-# Dosya yollarınızı kendi çalışma dizininize göre güncelleyebilirsiniz:
-pet_path = "petitoners_table - Sheet1 (1).csv"
-loc_path = "locations_table - Sheet1 (4).csv"
-rec_path = "receiver_table - Sheet1 (2).csv"
+PROJECT_DIR = Path(__file__).resolve().parents[1]
+SOURCE_DIR = PROJECT_DIR / "data" / "source"
+PROCESSED_DIR = PROJECT_DIR / "data" / "processed"
+ASSETS_DIR = PROJECT_DIR / "assets"
+PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
-df_pet = pd.read_csv(pet_path)
-df_loc = pd.read_csv(loc_path)
-df_rec = pd.read_csv(rec_path)
+df_pet = pd.read_csv(SOURCE_DIR / "petitioners.csv")
+df_loc = pd.read_csv(SOURCE_DIR / "locations.csv")
+df_rec = pd.read_csv(SOURCE_DIR / "receivers.csv")
 
 print(
     f"Yüklendi: {len(df_pet)} Davacı, {len(df_loc)} Konum, {len(df_rec)} Alıcı kaydı."
@@ -55,20 +61,20 @@ print(df_pet["petitioner_gender"].value_counts())
 # 4. ARCGIS PRO / QGIS İÇİN DIŞA AKTARIM (EXPORT FOR GIS & SQLITE)
 # -----------------------------------------------------------------------------
 # a) CSV Olarak Dışa Aktarma (ArcGIS Pro "XY Table to Point" aracı için)
-df_gis.to_csv("ottoman_decrees_gis_master.csv", index=False, encoding="utf-8-sig")
+df_gis.to_csv(
+    PROCESSED_DIR / "ottoman_decrees_gis_master.csv",
+    index=False,
+    encoding="utf-8-sig",
+)
 
 # b) SQLite Veritabanı Olarak Kaydetme (İlişkisel Veritabanı Yapısı)
-import sqlite3
-
-with sqlite3.connect("ottoman_decrees_hgis.db") as conn:
+with sqlite3.connect(PROCESSED_DIR / "ottoman_decrees_hgis.db") as conn:
     df_pet.to_sql("petitoners_table", conn, if_exists="replace", index=False)
     df_loc.to_sql("locations_table", conn, if_exists="replace", index=False)
     df_rec.to_sql("receiver_table", conn, if_exists="replace", index=False)
     df_gis.to_sql("gis_master_view", conn, if_exists="replace", index=False)
 
-print(
-    "\nİşlem tamamlandı! 'ottoman_decrees_gis_master.csv' ve 'ottoman_decrees_hgis.db' oluşturuldu."
-)
+print("\nGIS master CSV and SQLite database were generated in data/processed/.")
 
 
 ### 1. Üretilen Görsel Analizler (Studio Panelinizde Açıldı)
@@ -76,16 +82,10 @@ print(
 
 ### 2. Bu Grafikleri Python'da Üreten Tam Kod (VS Code / Jupyter Uyumlu)
 
-import os
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
-
 # 1. VERİLERİN YÜKLENMESİ
-loc = pd.read_csv("locations_table - Sheet1 (4).csv")
-pet = pd.read_csv("petitoners_table - Sheet1 (1).csv")
-rec = pd.read_csv("receiver_table - Sheet1 (2).csv")
+loc = pd.read_csv(SOURCE_DIR / "locations.csv")
+pet = pd.read_csv(SOURCE_DIR / "petitioners.csv")
+rec = pd.read_csv(SOURCE_DIR / "receivers.csv")
 
 # Davacı Cinsiyet/Topluluk Standartlaştırması
 pet["petitioner_gender"] = (
@@ -183,7 +183,7 @@ plt.xlabel("Provinces / Regions", fontsize=11, fontweight="bold")
 plt.ylabel("Complaint Classification", fontsize=11, fontweight="bold")
 plt.xticks(rotation=35, ha="right")
 plt.tight_layout()
-plt.savefig("ottoman_complaint_location_matrix.png", dpi=300)
+plt.savefig(ASSETS_DIR / "ottoman_complaint_location_matrix.png", dpi=300)
 plt.close()
 
 # -----------------------------------------------------------------------------
@@ -283,7 +283,7 @@ plt.suptitle(
     fontweight="bold",
 )
 plt.tight_layout()
-plt.savefig("ottoman_legal_social_infographic.png", dpi=300)
+plt.savefig(ASSETS_DIR / "ottoman_legal_social_infographic.png", dpi=300)
 plt.close()
 
 # -----------------------------------------------------------------------------
@@ -352,8 +352,7 @@ plt.title(
 plt.xlabel("Longitude (°E)", fontweight="bold")
 plt.ylabel("Latitude (°N)", fontweight="bold")
 plt.tight_layout()
-plt.savefig("ottoman_spatial_density_heatmap.png", dpi=300)
+plt.savefig(ASSETS_DIR / "ottoman_spatial_density_heatmap.png", dpi=300)
 plt.close()
 
 print("Tüm infografikler ve ısı haritaları başarıyla üretildi!")
-

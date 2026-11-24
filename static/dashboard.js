@@ -1,1357 +1,5 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="artifact-type" content="dashboard">
-  <meta name="design-style" content="charter">
-  <title>Ottoman HGIS Web Explorer (Python-powered)</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
-
-  <style>
-    :root {
-      color-scheme: light;
-
-      /* Charter Light Mode — Stewardship in Navy and Brass */
-      --background: #f7f4ec;
-      --surface-container-low: #fffdf8;
-      --surface-container: #ece5d4;
-      --surface-container-high: #e3dac4;
-
-      --on-surface: #1c1f26;
-      --on-surface-variant: #4f5360;
-
-      --outline: #b08d57;
-      --outline-variant: #d9cfb8;
-
-      --primary: #14213d;
-      --on-primary: #f7f4ec;
-      --primary-container: #e3e6ee;
-      --on-primary-container: #14213d;
-      --secondary: #2d5a4a;
-      --tertiary: #8a6a35;
-      --error: #9b2c2c;
-      --on-error: #f7f4ec;
-
-      --positive: #2d5a4a;
-      --warning: #8a6a35;
-      --focus: #14213d;
-
-      /* Map & visualization tokens */
-      --map-ocean: #dce6ee;
-      --map-land: #efe9dc;
-      --map-border: #b8aa8e;
-      --map-land-hover: #e5dcc9;
-
-      --data-1: #14213d;
-      --data-2: #8a6a35;
-      --data-3: #2d5a4a;
-      --data-4: #5b7aa0;
-      --data-5: #9b2c2c;
-      --data-6: #6b5344;
-      --data-7: #4a6b7c;
-      --data-context: #c2bba9;
-
-      --font-headline: 'Libre Caslon Text', Georgia, serif;
-      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-      --font-label: 'Inter', system-ui, -apple-system, sans-serif;
-      --font-mono: 'IBM Plex Mono', monospace;
-
-      --rounded: 0.125rem;
-      --rounded-lg: 0.125rem;
-      --rounded-full: 0.125rem;
-
-      --brass-rule: 2px solid var(--outline);
-      --hairline: 1px solid var(--outline-variant);
-      --leaf-underline: 0 1px 0 var(--outline-variant);
-      --title-brass: color-mix(in srgb, var(--outline) 75%, var(--on-primary));
-      --title-lede: color-mix(in srgb, var(--on-primary) 80%, var(--primary));
-
-      --display-size: clamp(1.65rem, 1.35rem + 1.1vw, 2.25rem);
-      --headline-size: clamp(1.2rem, 1.05rem + 0.45vw, 1.45rem);
-      --subhead-size: clamp(1.02rem, 0.96rem + 0.25vw, 1.15rem);
-      --body-size: clamp(0.9375rem, 0.9rem + 0.12vw, 1rem);
-      --label-size: 0.75rem;
-
-      --space-xs: 0.25rem;
-      --space-sm: 0.5rem;
-      --space-md: 1rem;
-      --space-lg: 1.5rem;
-      --space-xl: 2.5rem;
-      --space-2xl: 4rem;
-
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-      --dur-micro: 120ms;
-      --dur-short: 220ms;
-      --dur-long: 420ms;
-    }
-
-    [data-theme="dark"] {
-      color-scheme: dark;
-
-      /* Charter Dark Mode — Midnight Navy & Celestial Brass */
-      --background: #10172a;
-      --surface-container-low: #1a2338;
-      --surface-container: #222d46;
-      --surface-container-high: #2a3754;
-
-      --on-surface: #ece6d8;
-      --on-surface-variant: #a9afbd;
-
-      --outline: #c9ad7a;
-      --outline-variant: #37435e;
-
-      --primary: #c2cbe0;
-      --on-primary: #14213d;
-      --primary-container: #293654;
-      --on-primary-container: #ece6d8;
-      --secondary: #8fb3a3;
-      --tertiary: #c9ad7a;
-      --error: #e07a7a;
-      --on-error: #10172a;
-
-      --positive: #8fb3a3;
-      --warning: #c9ad7a;
-      --focus: #c9ad7a;
-
-      --map-ocean: #0d1424;
-      --map-land: #1f2a42;
-      --map-border: #485675;
-      --map-land-hover: #293654;
-
-      --data-1: #c2cbe0;
-      --data-2: #c9ad7a;
-      --data-3: #8fb3a3;
-      --data-4: #7ca3cc;
-      --data-5: #e07a7a;
-      --data-6: #bfa38f;
-      --data-7: #88b5c4;
-      --data-context: #4b5670;
-
-      --title-brass: var(--outline);
-      --title-lede: var(--on-surface-variant);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body {
-      overflow-x: clip;
-      margin: 0;
-      padding: 0;
-      background: var(--background);
-      color: var(--on-surface);
-      font-family: var(--font-body);
-      font-size: var(--body-size);
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    header { position: static !important; }
-
-    button, input, select, textarea {
-      font-family: inherit;
-      color: inherit;
-    }
-
-    :focus-visible {
-      outline: 2px solid var(--focus);
-      outline-offset: 2px;
-    }
-
-    /* Title Band */
-    .title-band {
-      background: var(--primary);
-      color: var(--on-primary);
-      border-bottom: 3px solid var(--outline);
-      padding: var(--space-lg) var(--space-xl);
-    }
-
-    [data-theme="dark"] .title-band {
-      background: var(--surface-container-high);
-      color: var(--on-surface);
-    }
-
-    .title-band-inner {
-      max-width: 1440px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-      gap: var(--space-lg);
-      align-items: end;
-    }
-
-    .kicker {
-      font-family: var(--font-label);
-      font-size: var(--label-size);
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--title-brass);
-      margin: 0 0 var(--space-xs) 0;
-    }
-
-    .title-band h1 {
-      font-family: var(--font-headline);
-      font-weight: 400;
-      font-size: var(--display-size);
-      line-height: 1.08;
-      letter-spacing: -0.01em;
-      margin: 0 0 var(--space-sm) 0;
-      color: inherit;
-    }
-
-    .title-band .lede {
-      font-size: 0.9375rem;
-      line-height: 1.5;
-      color: var(--title-lede);
-      max-width: 65ch;
-      margin: 0;
-    }
-
-    .header-controls {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: var(--space-sm);
-    }
-
-    .utility-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-sm);
-      justify-content: flex-end;
-    }
-
-    .nav-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-xs);
-      justify-content: flex-end;
-      border-bottom: 1px solid color-mix(in srgb, var(--outline) 45%, transparent);
-      padding-bottom: var(--space-xs);
-    }
-
-    .tab-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-xs);
-      min-height: 44px;
-      padding: var(--space-xs) var(--space-md);
-      background: transparent;
-      border: 1px solid transparent;
-      border-bottom: 2px solid transparent;
-      border-radius: var(--rounded);
-      font-family: var(--font-label);
-      font-size: var(--label-size);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--title-lede);
-      cursor: pointer;
-      transition: background-color var(--dur-micro) var(--ease-out),
-                  color var(--dur-micro) var(--ease-out),
-                  border-color var(--dur-micro) var(--ease-out);
-    }
-
-    .tab-btn:hover {
-      color: var(--on-primary);
-      background: color-mix(in srgb, var(--on-primary) 10%, transparent);
-    }
-
-    [data-theme="dark"] .tab-btn:hover {
-      color: var(--on-surface);
-      background: color-mix(in srgb, var(--on-surface) 10%, transparent);
-    }
-
-    .tab-btn.active {
-      color: var(--on-primary);
-      border-bottom-color: var(--outline);
-      background: color-mix(in srgb, var(--outline) 16%, transparent);
-    }
-
-    [data-theme="dark"] .tab-btn.active {
-      color: var(--on-surface);
-    }
-
-    .util-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-xs);
-      min-height: 44px;
-      padding: var(--space-xs) var(--space-md);
-      border-radius: var(--rounded);
-      border: 1px solid color-mix(in srgb, var(--outline) 70%, transparent);
-      background: color-mix(in srgb, var(--on-primary) 8%, transparent);
-      color: var(--on-primary);
-      font-family: var(--font-label);
-      font-size: var(--label-size);
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: background-color var(--dur-micro) var(--ease-out);
-    }
-
-    [data-theme="dark"] .util-btn {
-      color: var(--on-surface);
-      background: var(--surface-container-low);
-    }
-
-    .util-btn:hover {
-      background: color-mix(in srgb, var(--outline) 24%, transparent);
-    }
-
-    .util-btn-accent {
-      background: var(--outline);
-      color: var(--primary);
-      border-color: var(--outline);
-      font-weight: 600;
-    }
-
-    [data-theme="dark"] .util-btn-accent {
-      color: var(--on-primary);
-    }
-
-    .util-btn-accent:hover {
-      background: color-mix(in srgb, var(--outline) 85%, var(--on-primary));
-    }
-
-    /* Main Page Shell */
-    .page-shell {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: var(--space-lg) var(--space-xl) var(--space-2xl);
-      display: grid;
-      gap: var(--space-lg);
-    }
-    .page-shell * { min-width: 0; }
-
-    /* KPI Row */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--space-md);
-    }
-
-    .figure-card {
-      background: var(--surface-container-low);
-      border-top: var(--brass-rule);
-      box-shadow: var(--leaf-underline);
-      border-radius: var(--rounded-lg);
-      padding: var(--space-md) var(--space-lg);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: var(--space-xs);
-    }
-
-    .figure-label {
-      font-family: var(--font-label);
-      font-size: var(--label-size);
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--on-surface-variant);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-
-    .figure-value {
-      font-family: var(--font-headline);
-      font-weight: 400;
-      font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem);
-      line-height: 1.15;
-      font-variant-numeric: tabular-nums lining-nums;
-      color: var(--on-surface);
-      margin: var(--space-xs) 0 0 0;
-    }
-
-    .figure-sub {
-      font-size: 0.8125rem;
-      color: var(--tertiary);
-      font-weight: 500;
-      margin: 0;
-    }
-
-    /* Filter Bar */
-    .filter-panel {
-      background: var(--surface-container-low);
-      border-top: var(--brass-rule);
-      border-bottom: var(--hairline);
-      border-radius: var(--rounded);
-      padding: var(--space-md) var(--space-lg);
-      display: grid;
-      gap: var(--space-md);
-    }
-
-    .filter-header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: var(--space-sm);
-      border-bottom: var(--hairline);
-      padding-bottom: var(--space-sm);
-    }
-
-    .filter-title {
-      font-family: var(--font-headline);
-      font-weight: 700;
-      font-size: var(--subhead-size);
-      margin: 0;
-      color: var(--on-surface);
-    }
-
-    .filter-meta {
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-      font-size: 0.8125rem;
-      color: var(--on-surface-variant);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .filter-controls {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)) minmax(0, 1.1fr) auto;
-      gap: var(--space-md);
-      align-items: end;
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xs);
-    }
-
-    .field-group label {
-      font-family: var(--font-label);
-      font-size: var(--label-size);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--on-surface-variant);
-    }
-
-    .field-input, .field-select {
-      min-height: 44px;
-      padding: var(--space-xs) var(--space-sm);
-      background: var(--background);
-      border: 1px solid var(--outline-variant);
-      border-radius: var(--rounded);
-      font-size: 0.875rem;
-      color: var(--on-surface);
-      transition: border-color var(--dur-micro) var(--ease-out),
-                  box-shadow var(--dur-micro) var(--ease-out);
-    }
-
-    .field-select {
-      padding-right: var(--space-lg);
-    }
-
-    .field-input:focus, .field-select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
-    }
-
-    .range-pair {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      gap: var(--space-xs);
-      align-items: center;
-    }
-
-    .range-sep {
-      color: var(--on-surface-variant);
-      font-size: 0.8125rem;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-xs);
-      min-height: 44px;
-      padding: var(--space-xs) var(--space-md);
-      background: var(--primary);
-      color: var(--on-primary);
-      border: 1px solid var(--primary);
-      border-radius: var(--rounded);
-      font-family: var(--font-label);
-      font-size: 0.8125rem;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: background-color var(--dur-micro) var(--ease-out);
-    }
-
-    .btn-primary:hover {
-      background: color-mix(in srgb, var(--primary) 85%, var(--on-surface));
-    }
-
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-xs);
-      min-height: 44px;
-      padding: var(--space-xs) var(--space-md);
-      background: transparent;
-      color: var(--primary);
-      border: 1px solid var(--primary);
-      border-radius: var(--rounded);
-      font-family: var(--font-label);
-      font-size: 0.8125rem;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: background-color var(--dur-micro) var(--ease-out);
-    }
-
-    .btn-secondary:hover {
-      background: var(--primary-container);
-    }
-
-    .btn-secondary.active {
-      background: var(--primary);
-      color: var(--on-primary);
-    }
-
-    /* Views */
-    .view-section {
-      display: none;
-    }
-    .view-section.active {
-      display: grid;
-      gap: var(--space-lg);
-      animation: fadeRise var(--dur-short) var(--ease-out);
-    }
-
-    @keyframes fadeRise {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Explorer Split Layout */
-    .explorer-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-      gap: var(--space-lg);
-      align-items: start;
-    }
-
-    .panel-leaf {
-      background: var(--surface-container-low);
-      border-top: var(--brass-rule);
-      box-shadow: var(--leaf-underline);
-      border-radius: var(--rounded);
-      overflow: hidden;
-    }
-
-    .panel-head {
-      padding: var(--space-md) var(--space-lg);
-      border-bottom: var(--hairline);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-
-    .panel-head h2 {
-      font-family: var(--font-headline);
-      font-weight: 400;
-      font-size: var(--headline-size);
-      margin: 0;
-      color: var(--on-surface);
-    }
-
-    .panel-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-sm);
-      align-items: center;
-    }
-
-    /* Leaflet Map Container */
-    #ottoman-map {
-      width: 100%;
-      height: 540px;
-      min-height: 520px;
-      background: var(--map-ocean);
-      z-index: 1;
-    }
-
-    .leaflet-container {
-      background: var(--map-ocean);
-      font-family: var(--font-body);
-    }
-
-    .map-legend {
-      padding: var(--space-sm) var(--space-lg);
-      background: var(--surface-container);
-      border-top: var(--hairline);
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-md);
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--on-surface-variant);
-    }
-
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .legend-swatch {
-      width: 10px;
-      height: 10px;
-      border-radius: var(--rounded);
-      border: 1px solid var(--on-surface);
-      flex-shrink: 0;
-    }
-
-    /* Custom Leaflet Popup Styling */
-    .leaflet-popup-content-wrapper {
-      background: var(--surface-container-low);
-      color: var(--on-surface);
-      border-radius: var(--rounded);
-      border-top: 3px solid var(--outline);
-      box-shadow: 0 4px 16px color-mix(in srgb, var(--on-surface) 18%, transparent);
-      padding: 0;
-    }
-    .leaflet-popup-tip {
-      background: var(--surface-container-low);
-    }
-    .leaflet-popup-content {
-      margin: 0;
-      min-width: 280px;
-      max-width: 340px;
-    }
-    .popup-card {
-      padding: var(--space-md);
-      display: grid;
-      gap: var(--space-xs);
-      font-size: 0.8125rem;
-    }
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      border-bottom: var(--hairline);
-      padding-bottom: var(--space-xs);
-      gap: var(--space-sm);
-    }
-    .popup-id {
-      font-family: var(--font-mono);
-      font-weight: 600;
-      color: var(--tertiary);
-      font-size: 0.75rem;
-    }
-    .popup-place {
-      font-family: var(--font-headline);
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--on-surface);
-    }
-    .popup-row {
-      display: grid;
-      grid-template-columns: 92px minmax(0, 1fr);
-      gap: var(--space-xs);
-      line-height: 1.4;
-    }
-    .popup-k {
-      font-family: var(--font-label);
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--on-surface-variant);
-    }
-    .popup-v {
-      color: var(--on-surface);
-    }
-    .popup-directive {
-      margin-top: var(--space-xs);
-      padding: var(--space-xs) var(--space-sm);
-      background: var(--surface-container);
-      border-left: 2px solid var(--outline);
-      font-size: 0.78rem;
-    }
-
-    /* Decree List & Dossier */
-    .decree-sidebar {
-      display: grid;
-      gap: var(--space-md);
-    }
-
-    .decree-list {
-      max-height: 360px;
-      overflow-y: auto;
-      display: grid;
-    }
-
-    .decree-item {
-      width: 100%;
-      text-align: left;
-      background: transparent;
-      border: none;
-      border-bottom: var(--hairline);
-      padding: var(--space-sm) var(--space-lg);
-      cursor: pointer;
-      display: grid;
-      gap: 4px;
-      transition: background-color var(--dur-micro) var(--ease-out);
-    }
-
-    .decree-item:hover {
-      background: var(--surface-container);
-    }
-
-    .decree-item.selected {
-      background: var(--primary-container);
-      border-left: 3px solid var(--outline);
-    }
-
-    .decree-item-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-
-    .decree-id-badge {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--tertiary);
-    }
-
-    .stamp-tag {
-      display: inline-block;
-      padding: 1px 6px;
-      border: 1px solid var(--outline);
-      border-radius: var(--rounded);
-      font-family: var(--font-label);
-      font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--tertiary);
-    }
-
-    .decree-item-title {
-      font-weight: 600;
-      font-size: 0.875rem;
-      color: var(--on-surface);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .decree-item-meta {
-      display: flex;
-      justify-content: space-between;
-      gap: var(--space-sm);
-      font-size: 0.78rem;
-      color: var(--on-surface-variant);
-    }
-
-    .decree-amount {
-      font-family: var(--font-mono);
-      font-weight: 500;
-      color: var(--on-surface);
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Selected Decree Dossier */
-    .dossier-body {
-      padding: var(--space-md) var(--space-lg);
-      display: grid;
-      gap: var(--space-md);
-    }
-
-    .dossier-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--space-sm) var(--space-md);
-    }
-
-    .dossier-field {
-      border-bottom: var(--hairline);
-      padding-bottom: var(--space-xs);
-    }
-
-    .dossier-field.full {
-      grid-column: 1 / -1;
-    }
-
-    .dossier-field-label {
-      font-family: var(--font-label);
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--on-surface-variant);
-      margin-bottom: 2px;
-    }
-
-    .dossier-field-val {
-      font-size: 0.875rem;
-      color: var(--on-surface);
-    }
-
-    .dossier-field-val.muted {
-      color: var(--on-surface-variant);
-    }
-
-    .dossier-field-val.mono {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-    }
-
-    /* Analytics Grid */
-    .analytics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--space-lg);
-    }
-
-    .chart-card {
-      background: var(--surface-container-low);
-      border-top: var(--brass-rule);
-      box-shadow: var(--leaf-underline);
-      border-radius: var(--rounded);
-      padding: var(--space-md) var(--space-lg);
-      display: grid;
-      gap: var(--space-sm);
-    }
-
-    .chart-title-wrap {
-      border-bottom: var(--hairline);
-      padding-bottom: var(--space-sm);
-    }
-
-    .chart-title-wrap h3 {
-      font-family: var(--font-headline);
-      font-weight: 400;
-      font-size: var(--headline-size);
-      margin: 0 0 2px 0;
-      color: var(--on-surface);
-    }
-
-    .chart-subtitle {
-      font-size: 0.8125rem;
-      color: var(--on-surface-variant);
-      margin: 0;
-    }
-
-    .chart-box {
-      position: relative;
-      height: 290px;
-      min-height: 280px;
-      width: 100%;
-    }
-
-    /* Historiography Note */
-    .hist-note {
-      background: var(--surface-container-low);
-      border-top: var(--brass-rule);
-      box-shadow: var(--leaf-underline);
-      border-radius: var(--rounded);
-      padding: var(--space-lg);
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: var(--space-lg);
-    }
-
-    .hist-note h3 {
-      font-family: var(--font-headline);
-      font-weight: 400;
-      font-size: var(--headline-size);
-      margin: 0 0 var(--space-sm) 0;
-    }
-
-    .hist-note p {
-      margin: 0 0 var(--space-sm) 0;
-      font-size: 0.875rem;
-      color: var(--on-surface-variant);
-      max-width: 65ch;
-    }
-
-    /* Relational Schema View */
-    .schema-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-      gap: var(--space-sm);
-    }
-
-    .schema-btn {
-      text-align: left;
-      padding: var(--space-md);
-      background: var(--surface-container-low);
-      border: 1px solid var(--outline-variant);
-      border-top: var(--brass-rule);
-      border-radius: var(--rounded);
-      cursor: pointer;
-      display: grid;
-      gap: 4px;
-      transition: background-color var(--dur-micro) var(--ease-out);
-    }
-
-    .schema-btn:hover {
-      background: var(--surface-container);
-    }
-
-    .schema-btn.active {
-      background: var(--primary-container);
-      border-color: var(--primary);
-    }
-
-    .schema-name {
-      font-family: var(--font-mono);
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: var(--on-surface);
-    }
-
-    .schema-tr {
-      font-size: 0.78rem;
-      color: var(--tertiary);
-      font-weight: 600;
-    }
-
-    .schema-count {
-      font-size: 0.75rem;
-      color: var(--on-surface-variant);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .table-wrap {
-      background: var(--surface-container-low);
-      border-top: var(--brass-rule);
-      box-shadow: var(--leaf-underline);
-      border-radius: var(--rounded);
-      overflow: auto;
-      max-height: 540px;
-    }
-
-    table.data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.84rem;
-    }
-
-    table.data-table thead th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: var(--surface-container-high);
-      color: var(--on-surface);
-      font-family: var(--font-label);
-      font-size: var(--label-size);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      text-align: left;
-      padding: var(--space-sm) var(--space-md);
-      border-bottom: 1px solid var(--outline);
-      white-space: nowrap;
-    }
-
-    table.data-table tbody td {
-      padding: var(--space-sm) var(--space-md);
-      border-bottom: var(--hairline);
-      color: var(--on-surface);
-      vertical-align: top;
-    }
-
-    table.data-table tbody tr:hover {
-      background: var(--surface-container);
-    }
-
-    table.data-table td.num, table.data-table th.num {
-      text-align: right;
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .empty-table-cell {
-      text-align: center;
-      padding: var(--space-xl);
-      color: var(--on-surface-variant);
-    }
-
-    .inline-link-btn {
-      background: transparent;
-      border: none;
-      padding: 0;
-      color: var(--primary);
-      font-family: var(--font-mono);
-      font-weight: 600;
-      text-decoration: underline;
-      text-decoration-color: var(--outline);
-      text-underline-offset: 3px;
-      cursor: pointer;
-    }
-
-    .empty-state {
-      padding: var(--space-xl);
-      text-align: center;
-      color: var(--on-surface-variant);
-      display: grid;
-      gap: var(--space-sm);
-      justify-items: center;
-    }
-
-    .footer-note {
-      border-top: var(--brass-rule);
-      padding-top: var(--space-md);
-      font-size: 0.8125rem;
-      color: var(--on-surface-variant);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: var(--space-md);
-    }
-
-    /* Responsive Breakpoints */
-    @media (max-width: 1120px) {
-      .title-band-inner { grid-template-columns: 1fr; }
-      .header-controls { align-items: flex-start; }
-      .utility-row, .nav-tabs { justify-content: flex-start; }
-      .filter-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .explorer-grid { grid-template-columns: 1fr; }
-      .analytics-grid { grid-template-columns: 1fr; }
-      .hist-note { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 640px) {
-      .title-band { padding: var(--space-md); }
-      .page-shell { padding: var(--space-md); }
-      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .filter-controls { grid-template-columns: 1fr; }
-      .dossier-grid { grid-template-columns: 1fr; }
-      #ottoman-map { height: 400px; min-height: 400px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-    }
-  </style>
-</head>
-<body>
-  <header class="title-band">
-    <div class="title-band-inner">
-      <div>
-        <p class="kicker" id="ui-kicker">1 NUMARALI ŞİKÂYET DEFTERİ · H. 1059–1060 / 1649–1650 CE · 7 RELATIONAL TABLES</p>
-        <h1 id="ui-main-title">Ottoman HGIS Web Explorer (1649–1650)</h1>
-        <p class="lede" id="ui-main-lede">
-          Spatial and relational exploration of imperial complaint decrees (<em>Mühimme-i Şikâyet</em>), connecting petitioners, accused officials (<em>Şikâyet Edilenler</em>), financial claims (<em>Guruş–Akçe</em>), administrative hierarchy (<em>Eyalet–Sancak–Kaza–Karye</em>), and <em>Dîvân-ı Hümâyûn</em> resolutions.
-        </p>
-      </div>
-      <div class="header-controls">
-        <div class="utility-row">
-          <button type="button" class="util-btn" id="btn-lang" onclick="toggleLanguage()">
-            <i data-lucide="languages" aria-hidden="true"></i>
-            <span id="lbl-lang">Türkçe Arayüz</span>
-          </button>
-          <button type="button" class="util-btn" id="btn-theme" onclick="toggleTheme()">
-            <i data-lucide="moon" aria-hidden="true"></i>
-            <span id="lbl-theme">Dark Mode</span>
-          </button>
-          <button type="button" class="util-btn util-btn-accent" id="btn-export-csv" onclick="exportFilteredCsv()">
-            <i data-lucide="download" aria-hidden="true"></i>
-            <span id="lbl-export">Export CSV</span>
-          </button>
-        </div>
-        <nav class="nav-tabs" aria-label="Explorer Views">
-          <button type="button" class="tab-btn active" data-view="explorer" onclick="switchView('explorer')">
-            <i data-lucide="map" aria-hidden="true"></i>
-            <span id="tab-lbl-explorer">Spatial Map &amp; Decrees</span>
-          </button>
-          <button type="button" class="tab-btn" data-view="analytics" onclick="switchView('analytics')">
-            <i data-lucide="bar-chart-3" aria-hidden="true"></i>
-            <span id="tab-lbl-analytics">Analytics &amp; Breakdown</span>
-          </button>
-          <button type="button" class="tab-btn" data-view="schema" onclick="switchView('schema')">
-            <i data-lucide="database" aria-hidden="true"></i>
-            <span id="tab-lbl-schema">7-Table Relational DB</span>
-          </button>
-        </nav>
-      </div>
-    </div>
-  </header>
-
-  <main class="page-shell">
-    <!-- Executive KPI Metrics Header -->
-    <section class="kpi-grid" aria-label="Executive KPI Summary">
-      <article class="figure-card">
-        <div class="figure-label">
-          <span id="kpi-lbl-decrees">Total Decrees · Toplam Hüküm</span>
-        </div>
-        <p class="figure-value" id="kpi-val-decrees">52</p>
-        <p class="figure-sub" id="kpi-sub-decrees">74 spatial points · Muharrem 1059</p>
-      </article>
-
-      <article class="figure-card">
-        <div class="figure-label">
-          <span id="kpi-lbl-gurus">Total Claimed Guruş · Toplam Guruş</span>
-        </div>
-        <p class="figure-value" id="kpi-val-gurus">8,530</p>
-        <p class="figure-sub" id="kpi-sub-gurus">Explicit &amp; coded claims (1 guruş = 80 akçe)</p>
-      </article>
-
-      <article class="figure-card">
-        <div class="figure-label">
-          <span id="kpi-lbl-accused">Top Accused Category · En Çok Şikâyet Edilen</span>
-        </div>
-        <p class="figure-value" id="kpi-val-accused">Judicial / Kadi</p>
-        <p class="figure-sub" id="kpi-sub-accused">0 decrees in active filter</p>
-      </article>
-
-      <article class="figure-card">
-        <div class="figure-label">
-          <span id="kpi-lbl-locations">Active Locations · Aktif Kaza / Konum</span>
-        </div>
-        <p class="figure-value" id="kpi-val-locations">47</p>
-        <p class="figure-sub" id="kpi-sub-locations">Across 10 imperial eyalets</p>
-      </article>
-    </section>
-
-    <!-- Multi-Faceted Filtering Panel -->
-    <section class="filter-panel" aria-label="Multi-Faceted Dataset Filters">
-      <div class="filter-header">
-        <h2 class="filter-title" id="ui-filter-title">Multi-Faceted Relational Filters · Çok Boyutlu Filtreleme</h2>
-        <div class="filter-meta">
-          <span id="filter-status-text">Showing 52 of 52 decrees</span>
-          <span id="export-feedback" aria-live="polite"></span>
-        </div>
-      </div>
-      <div class="filter-controls">
-        <div class="field-group">
-          <label for="filter-search" id="lbl-search">Search · Arama (ID, Name, Kaza)</label>
-          <input type="text" id="filter-search" class="field-input" placeholder="e.g. Gölbazarı, Kadi, 6330…" oninput="applyFilters()">
-        </div>
-
-        <div class="field-group">
-          <label for="filter-complaint" id="lbl-complaint">Complaint Type · Şikâyet Türü</label>
-          <select id="filter-complaint" class="field-select" onchange="applyFilters()">
-            <option value="ALL">All Categories · Tüm Konular</option>
-          </select>
-        </div>
-
-        <div class="field-group">
-          <label for="filter-defendant" id="lbl-defendant">Defendant Status · Şikâyet Edilen</label>
-          <select id="filter-defendant" class="field-select" onchange="applyFilters()">
-            <option value="ALL">All Categories · Tüm Statüler</option>
-          </select>
-        </div>
-
-        <div class="field-group">
-          <label for="filter-eyalet" id="lbl-eyalet">Eyalet / Province · Eyalet</label>
-          <select id="filter-eyalet" class="field-select" onchange="applyFilters()">
-            <option value="ALL">All Eyalets · Tüm Eyaletler</option>
-          </select>
-        </div>
-
-        <div class="field-group">
-          <label for="filter-min-gurus" id="lbl-range">Financial Range (Guruş) · Tutar Aralığı</label>
-          <div class="range-pair">
-            <input type="number" id="filter-min-gurus" class="field-input" min="0" step="50" placeholder="Min" oninput="applyFilters()">
-            <span class="range-sep">–</span>
-            <input type="number" id="filter-max-gurus" class="field-input" min="0" step="50" placeholder="Max" oninput="applyFilters()">
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label for="btn-reset-filters" id="lbl-actions">Actions · İşlem</label>
-          <button type="button" id="btn-reset-filters" class="btn-secondary" onclick="resetFilters()">
-            <i data-lucide="rotate-ccw" aria-hidden="true"></i>
-            <span id="lbl-reset">Reset</span>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 1: SPATIAL MAP & DECREES -->
-    <section id="view-explorer" class="view-section active" aria-label="Spatial Map and Decree Explorer">
-      <div class="explorer-grid">
-        <!-- Map Panel -->
-        <article class="panel-leaf">
-          <div class="panel-head">
-            <h2 id="ui-map-title">Imperial Petition Geography · Şikâyet Coğrafyası</h2>
-            <div class="panel-toolbar">
-              <button type="button" id="btn-heatmap" class="btn-secondary" onclick="toggleHeatmap()">
-                <i data-lucide="flame" aria-hidden="true"></i>
-                <span id="lbl-heatmap">Heatmap Layer: Off</span>
-              </button>
-              <button type="button" id="btn-fit-map" class="btn-secondary" onclick="fitMapToFiltered()">
-                <i data-lucide="maximize-2" aria-hidden="true"></i>
-                <span id="lbl-fit-map">Fit Empire View</span>
-              </button>
-            </div>
-          </div>
-
-          <div id="ottoman-map" role="region" aria-label="Interactive vector map of Ottoman Empire petitions"></div>
-
-          <div class="map-legend" id="map-legend">
-            <!-- Populated dynamically from category colors -->
-          </div>
-        </article>
-
-        <!-- Right Sidebar: Decree List + Selected Decree Relational Dossier -->
-        <div class="decree-sidebar">
-          <article class="panel-leaf">
-            <div class="panel-head">
-              <h2 id="ui-list-title">Decree Register · Hüküm Listesi</h2>
-              <span class="stamp-tag" id="list-count-badge">52 Records</span>
-            </div>
-            <div id="decree-list" class="decree-list" role="list">
-              <!-- Populated dynamically -->
-            </div>
-          </article>
-
-          <article class="panel-leaf" id="selected-dossier-card">
-            <div class="panel-head">
-              <h2 id="ui-dossier-title">Decree Dossier · Hüküm Künyesi</h2>
-              <span class="stamp-tag" id="dossier-decree-badge">Decree #1</span>
-            </div>
-            <div id="dossier-body" class="dossier-body">
-              <!-- Populated dynamically -->
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 2: ANALYTICS & BREAKDOWN -->
-    <section id="view-analytics" class="view-section" aria-label="Financial and Defendant Analytics">
-      <div class="analytics-grid">
-        <article class="chart-card">
-          <div class="chart-title-wrap">
-            <h3 id="chart-title-1">Financial Claims by Complaint Category · Konulara Göre Guruş</h3>
-            <p class="chart-subtitle" id="chart-sub-1">Normalized Guruş (1 guruş = 80 akçe) across filtered decrees</p>
-          </div>
-          <div class="chart-box">
-            <canvas id="chart-financial-cat"></canvas>
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <div class="chart-title-wrap">
-            <h3 id="chart-title-2">Accused Defendant Breakdown · Şikâyet Edilen Kategorileri</h3>
-            <p class="chart-subtitle" id="chart-sub-2">Distribution of accused officials and private actors</p>
-          </div>
-          <div class="chart-box">
-            <canvas id="chart-defendants"></canvas>
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <div class="chart-title-wrap">
-            <h3 id="chart-title-3">Spatial Connectivity by Eyalet · Eyaletlere Göre Hüküm Yoğunluğu</h3>
-            <p class="chart-subtitle" id="chart-sub-3">Decree counts and spatial sites linked to Istanbul Dîvân</p>
-          </div>
-          <div class="chart-box">
-            <canvas id="chart-eyalets"></canvas>
-          </div>
-        </article>
-
-        <article class="chart-card">
-          <div class="chart-title-wrap">
-            <h3 id="chart-title-4">Dîvân Resolutions &amp; Petitioner Profile · Kararlar ve Davacılar</h3>
-            <p class="chart-subtitle" id="chart-sub-4">Imperial directive types issued across petitioner demographics</p>
-          </div>
-          <div class="chart-box">
-            <canvas id="chart-resolutions"></canvas>
-          </div>
-        </article>
-      </div>
-
-      <article class="hist-note">
-        <div>
-          <h3 id="hist-title-1">Comparative HGIS Methodology &amp; Relational Model</h3>
-          <p id="hist-p-1">
-            Drawing on the 1649–1650 (H. 1059–1060) separation of <em>Şikâyet Defterleri</em> from the <em>Mühimme Defterleri</em>, this explorer extends the three core archival tables (<em>petitioners_table</em>, <em>locations_table</em>, <em>receiver_table</em>) with four relational schemas keyed by <code>decree_id</code>: Defendants (<em>Şikâyet Edilenler</em>), Financial Claims (<em>Parasal Miktarlar</em>), Administrative Hierarchy (<em>Eyalet–Sancak–Kaza–Karye</em>), and Imperial Directives (<em>Dîvân Kararları</em>).
-          </p>
-          <p id="hist-p-2">
-            Place-name standardization and sancak/eyalet assignments cross-reference <em>Kaynaklarıyla Osmanlı Coğrafyası Yer Adları Sözlüğü</em> alongside the spatial frameworks of <em>Mapping Ottoman Epirus (MapOE)</em> and <em>The 1832/33 Ottoman Property Survey of Cyprus</em>.
-          </p>
-        </div>
-        <div>
-          <h3 id="hist-title-2">Global Petitioning Historiography &amp; Monetary Notes</h3>
-          <p id="hist-p-3">
-            By mapping non-Muslim subjects (<em>dhimmi</em>), women (e.g., Ayşe Hatun #2, Mümine #18, Fatma Hatun #25), collective villages, and provincial officials relative to imperial courier routes, the dataset brings Ottoman empirical evidence into dialogue with early modern petitioning scholarship (Brodie Waddell, David Zaret, Richard Huzzey).
-          </p>
-          <p id="hist-p-4">
-            <strong>Currency Note:</strong> Explicit sums from the register (e.g., 6,330 guruş in Decree #27; 2,200 guruş in Decree #30; 4 akçe/unit customs fee in Decree #21) are recorded verbatim and distinguished from unquantified qualitative claims (marked <em>Unquantified / Gayr-ı Muharrer</em>) or standardized archival conversions (1 esedî guruş = 80 akçe).
-          </p>
-        </div>
-      </article>
-    </section>
-
-    <!-- VIEW 3: 7-TABLE RELATIONAL DATABASE EXPLORER -->
-    <section id="view-schema" class="view-section" aria-label="Seven-Table Relational Database Explorer">
-      <div class="schema-cards" id="schema-selector">
-        <!-- Populated dynamically -->
-      </div>
-
-      <article class="panel-leaf">
-        <div class="panel-head">
-          <div>
-            <h2 id="schema-active-title">petitioners_table</h2>
-            <p class="chart-subtitle" id="schema-active-desc">Core archival petitioners linked by foreign key decree_id</p>
-          </div>
-          <div class="panel-toolbar">
-            <span class="stamp-tag" id="schema-row-count">52 rows</span>
-            <button type="button" class="btn-secondary" onclick="exportActiveTableCsv()">
-              <i data-lucide="file-spreadsheet" aria-hidden="true"></i>
-              <span id="lbl-export-table">Export Active Table</span>
-            </button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table" id="schema-table">
-            <thead id="schema-thead"></thead>
-            <tbody id="schema-tbody"></tbody>
-          </table>
-        </div>
-      </article>
-    </section>
-
-    <footer class="footer-note">
-      <span id="footer-sources">
-        Sources: BOA 1 Numaralı Şikâyet Defteri (H. 1059 / 1649 CE, Decrees 1–56); Kaynaklarıyla Osmanlı Coğrafyası Yer Adları Sözlüğü; Natural Earth 50m Vector Boundaries (public domain).
-      </span>
-      <span id="footer-currency">
-        Relational Key: decree_id · Currency Reference: 1 Esedî Guruş ≈ 80 Akçe (mid-17th c.)
-      </span>
-    </footer>
-  </main>
-
-  <api-shim></api-shim>
-
-  <script>
     // =========================================================================
-    // 1. SOURCE TABLES (52 Decrees, 74 Spatial Locations, 98 Receiver Rows)
+    // 1. SOURCE TABLES (53 Decrees, 75 Spatial Locations, 100 Receiver Rows)
     // =========================================================================
     let PETITIONERS_TABLE = [
       { decree_id: 1, petitioner_name: `Sheik Yahya`, petitioner_title: `Sheik`, petitioner_gender: `male`, complaint_subject: `desolation`, month: `M`, year: 1059 },
@@ -1405,7 +53,8 @@
       { decree_id: 53, petitioner_name: `Inhabitants of Rahova Village`, petitioner_title: `Subjects`, petitioner_gender: `group`, complaint_subject: `Extortion`, month: `M`, year: 1059 },
       { decree_id: 54, petitioner_name: `Creditors`, petitioner_title: `Creditor / Subject`, petitioner_gender: `group`, complaint_subject: `Debt`, month: `M`, year: 1059 },
       { decree_id: 55, petitioner_name: `Stipendiaries of Gazi Murad Pasha Waqf`, petitioner_title: `Waqf Beneficiaries / Stipend Holders`, petitioner_gender: `group`, complaint_subject: `Property`, month: `M`, year: 1059 },
-      { decree_id: 56, petitioner_name: `Ramazan`, petitioner_title: `Commander`, petitioner_gender: `male`, complaint_subject: `Debt`, month: `M`, year: 1059 }
+      { decree_id: 56, petitioner_name: `Ramazan`, petitioner_title: `Commander`, petitioner_gender: `male`, complaint_subject: `Debt`, month: `M`, year: 1059 },
+      { decree_id: 57, petitioner_name: `Pirlepe Kadısı Mevlana Ali`, petitioner_title: `Kadi / Local Magistrate`, petitioner_gender: `male`, complaint_subject: `Resettlement`, month: `Zilhicce`, year: `1058 / 1059` }
     ];
 
     let LOCATIONS_TABLE = [
@@ -1482,7 +131,8 @@
       { location_id: 71, decree_id: 54, location_name: `Diyarbakır`, receiver_location: `Diyarbekir`, lat: 37.9144, long: 40.2306 },
       { location_id: 72, decree_id: 55, location_name: `Syria`, receiver_location: `Haleb`, lat: 36.2021, long: 37.1343 },
       { location_id: 73, decree_id: 56, location_name: `Syria`, receiver_location: `Rakka`, lat: 35.9500, long: 39.0167 },
-      { location_id: 74, decree_id: 56, location_name: `Şanlıurfa`, receiver_location: `Birecik`, lat: 37.0294, long: 37.9786 }
+      { location_id: 74, decree_id: 56, location_name: `Şanlıurfa`, receiver_location: `Birecik`, lat: 37.0294, long: 37.9786 },
+      { location_id: 75, decree_id: 57, location_name: `Kuzey Makedonya (Pirlepe)`, receiver_location: `Kalkandelen`, lat: 42.0097, long: 20.9714 }
     ];
 
     let RECEIVER_TABLE = [
@@ -1583,7 +233,9 @@
       { receiver_id: 95, decree_id: 55, receiver_title: `Pasha` },
       { receiver_id: 96, decree_id: 55, receiver_title: `Kadi` },
       { receiver_id: 97, decree_id: 56, receiver_title: `Kadi` },
-      { receiver_id: 98, decree_id: 56, receiver_title: `Pasha` }
+      { receiver_id: 98, decree_id: 56, receiver_title: `Pasha` },
+      { receiver_id: 99, decree_id: 57, receiver_title: `Kalkandelen Kadısı` },
+      { receiver_id: 100, decree_id: 57, receiver_title: `Rumeli Beylerbeyisi Mustafa Paşa` }
     ];
 
     // =========================================================================
@@ -1755,7 +407,8 @@
       { hier_id: 49, decree_id: 53, eyalet: `Rumeli Eyaleti`, sancak: `Üsküb`, kaza: `Üsküb`, karye_or_nefs: `Karye-i Rahova` },
       { hier_id: 50, decree_id: 54, eyalet: `Diyarbekir Eyaleti`, sancak: `Amid (Diyarbekir)`, kaza: `Diyarbekir`, karye_or_nefs: `Nefs-i Diyarbekir` },
       { hier_id: 51, decree_id: 55, eyalet: `Haleb Eyaleti`, sancak: `Haleb`, kaza: `Haleb`, karye_or_nefs: `Gazi Murad Pasha Waqf` },
-      { hier_id: 52, decree_id: 56, eyalet: `Rakka / Haleb Eyaleti`, sancak: `Rakka & Birecik`, kaza: `Rakka & Birecik`, karye_or_nefs: `Euphrates Crossing` }
+      { hier_id: 52, decree_id: 56, eyalet: `Rakka / Haleb Eyaleti`, sancak: `Rakka & Birecik`, kaza: `Rakka & Birecik`, karye_or_nefs: `Euphrates Crossing` },
+      { hier_id: 53, decree_id: 57, eyalet: `Rumeli Eyaleti`, sancak: `Paşa Sancağı`, kaza: `Pirlepe ve Kalkandelen`, karye_or_nefs: `Kaza-i Pirlepe` }
     ];
 
     // Table 7: Dîvân Kararları (Resolutions Table)
@@ -1899,8 +552,35 @@
         lblDefendant: `Defendant Status · Şikâyet Edilen`,
         lblEyalet: `Eyalet / Province · Eyalet`,
         lblRange: `Financial Range (Guruş) · Tutar Aralığı`,
+        lblMinGurus: `Minimum financial amount in Guruş`,
+        lblMaxGurus: `Maximum financial amount in Guruş`,
         lblReset: `Reset`,
         mapTitle: `Imperial Petition Geography · Şikâyet Coğrafyası`,
+        mapAccessibleDescription: `Use the decree register or the text table below to explore map locations without using the map. Country names shown on the map are also listed in the text alternative.`,
+        mapDataSummary: `View map locations and country names as text`,
+        mapCountryLabels: `Modern country labels shown on the map: Syria, Türkiye, Greece, Iraq, Bulgaria, Serbia, Hungary, Bosnia and Herzegovina, and North Macedonia.`,
+        mapTableCaption: `Locations represented on the map for the active filters`,
+        mapTableHeaders: [`Decree`, `Modern location`, `Receiver location`, `Latitude`, `Longitude`],
+        mapNoLocations: `No locations match the active filters.`,
+        chartDataSummaries: [
+          `View financial claims as a table`,
+          `View defendant counts as a table`,
+          `View decree and location counts as a table`,
+          `View resolution and petitioner counts as a table`
+        ],
+        chartDataCaptions: [
+          `Financial claims by complaint category`,
+          `Decree counts by defendant status`,
+          `Decrees and spatial sites by eyalet`,
+          `Dîvân resolutions by petitioner group`
+        ],
+        chartDataHeaders: [
+          [`Complaint category`, `Normalized Guruş`],
+          [`Defendant status`, `Decrees`],
+          [`Eyalet`, `Decrees`, `Spatial sites`],
+          [`Resolution`, `Male`, `Group / Collective`, `Female`]
+        ],
+        chartNoData: `No data matches the active filters.`,
         heatmapOff: `Heatmap Layer: Off`,
         heatmapOn: `Heatmap Layer: On`,
         fitMap: `Fit Empire View`,
@@ -1929,8 +609,35 @@
         lblDefendant: `Şikâyet Edilen Statüsü`,
         lblEyalet: `Eyalet / Bölge`,
         lblRange: `Parasal Aralık (Guruş)`,
+        lblMinGurus: `En düşük tutar (Guruş)`,
+        lblMaxGurus: `En yüksek tutar (Guruş)`,
         lblReset: `Sıfırla`,
         mapTitle: `Şikâyet Coğrafyası ve Yoğunluk Haritası`,
+        mapAccessibleDescription: `Harita konumlarını haritayı kullanmadan incelemek için hüküm listesini veya aşağıdaki metin tablosunu kullanın. Haritadaki ülke adları da metin açıklamasında listelenmiştir.`,
+        mapDataSummary: `Harita konumlarını ve ülke adlarını metin olarak görüntüle`,
+        mapCountryLabels: `Haritada gösterilen güncel ülke adları: Suriye, Türkiye, Yunanistan, Irak, Bulgaristan, Sırbistan, Macaristan, Bosna-Hersek ve Kuzey Makedonya.`,
+        mapTableCaption: `Etkin filtrelere göre haritada gösterilen konumlar`,
+        mapTableHeaders: [`Hüküm`, `Güncel konum`, `Alıcı konumu`, `Enlem`, `Boylam`],
+        mapNoLocations: `Etkin filtrelere uygun konum bulunamadı.`,
+        chartDataSummaries: [
+          `Parasal talepleri tablo olarak görüntüle`,
+          `Şikâyet edilen kişi sayılarını tablo olarak görüntüle`,
+          `Eyalet ve konum sayılarını tablo olarak görüntüle`,
+          `Karar ve davacı sayılarını tablo olarak görüntüle`
+        ],
+        chartDataCaptions: [
+          `Şikâyet türüne göre parasal talepler`,
+          `Şikâyet edilen statüsüne göre hüküm sayıları`,
+          `Eyalete göre hükümler ve mekânsal konumlar`,
+          `Davacı grubuna göre Dîvân kararları`
+        ],
+        chartDataHeaders: [
+          [`Şikâyet türü`, `Normalize guruş`],
+          [`Şikâyet edilen statüsü`, `Hükümler`],
+          [`Eyalet`, `Hükümler`, `Mekânsal konumlar`],
+          [`Karar`, `Erkek`, `Grup / Topluluk`, `Kadın`]
+        ],
+        chartNoData: `Etkin filtrelere uygun veri bulunamadı.`,
         heatmapOff: `Isı Haritası: Kapalı`,
         heatmapOn: `Isı Haritası: Açık`,
         fitMap: `Tüm Coğrafyaya Odaklan`,
@@ -1967,6 +674,17 @@
     let markerByDecree = new Map();
     let heatLayerInstance = null;
     let chartInstances = {};
+    const MODERN_COUNTRY_LABELS = new Map([
+      [`Syria`, `Syria`],
+      [`Turkey`, `Türkiye`],
+      [`Greece`, `Greece`],
+      [`Iraq`, `Iraq`],
+      [`Bulgaria`, `Bulgaria`],
+      [`Serbia`, `Serbia`],
+      [`Hungary`, `Hungary`],
+      [`Bosnia and Herz.`, `Bosnia and Herzegovina`],
+      [`Macedonia`, `North Macedonia`]
+    ]);
 
     // =========================================================================
     // 6. TOKEN & COLOR HELPERS (Read live from :root / [data-theme])
@@ -2063,6 +781,65 @@
       markerGroup = L.layerGroup().addTo(leafletMap);
       heatLayerInstance = new CanvasHeatLayer([]);
 
+      const istanbulCoords = [41.0082, 28.9784];
+      const destinations = new Map();
+      LOCATIONS_TABLE.forEach(location => {
+        if (
+          location.lat === null || location.lat === undefined || location.lat === `` ||
+          location.long === null || location.long === undefined || location.long === ``
+        ) return;
+
+        const lat = Number(location.lat);
+        const lng = Number(location.long);
+        if (
+          !Number.isFinite(lat) || lat < -90 || lat > 90 ||
+          !Number.isFinite(lng) || lng < -180 || lng > 180
+        ) return;
+
+        const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+        if (key === `${istanbulCoords[0].toFixed(5)},${istanbulCoords[1].toFixed(5)}`) return;
+
+        if (!destinations.has(key)) {
+          destinations.set(key, {
+            lat,
+            lng,
+            names: new Set(),
+            decreeIds: new Set()
+          });
+        }
+
+        const destination = destinations.get(key);
+        [location.location_name, location.receiver_location]
+          .filter(Boolean)
+          .forEach(name => destination.names.add(name));
+        if (location.decree_id !== null && location.decree_id !== undefined) {
+          destination.decreeIds.add(location.decree_id);
+        }
+      });
+
+      const courierLayerGroup = L.layerGroup();
+      destinations.forEach(destination => {
+        const popup = document.createElement(`div`);
+        const title = document.createElement(`strong`);
+        title.textContent = `Istanbul → ${Array.from(destination.names).join(` / `)}`;
+        popup.appendChild(title);
+
+        const details = document.createElement(`div`);
+        const decreeIds = Array.from(destination.decreeIds).sort((a, b) => a - b);
+        details.textContent = `Straight-line connection · Decree(s): ${decreeIds.join(`, `)}`;
+        popup.appendChild(details);
+
+        L.polyline([istanbulCoords, [destination.lat, destination.lng]], {
+          color: `#f59e0b`,
+          weight: 1.5,
+          opacity: 0.45,
+          dashArray: `4, 6`
+        })
+          .bindPopup(popup)
+          .addTo(courierLayerGroup);
+      });
+      courierLayerGroup.addTo(leafletMap);
+
       fetch(`https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json`)
         .then(r => r.json())
         .then(topo => {
@@ -2075,6 +852,17 @@
                 color: getToken(`--map-border`),
                 weight: 0.75
               };
+            },
+            onEachFeature: function (feature, layer) {
+              const countryName = MODERN_COUNTRY_LABELS.get(feature.properties?.name);
+              if (!countryName) return;
+
+              layer.bindTooltip(countryName, {
+                permanent: false,
+                sticky: true,
+                direction: `top`,
+                className: `country-name-label`
+              });
             }
           }).addTo(leafletMap);
           worldVectorLayer.bringToBack();
@@ -2202,6 +990,7 @@
       renderDecreeList();
       renderSelectedDossier();
       renderMapMarkers();
+      renderAccessibleMapData();
       if (APP_STATE.activeView === `analytics`) {
         renderAnalyticsCharts();
       }
@@ -2232,10 +1021,15 @@
       applyFilters();
     }
 
+    function getAggregateClaimGurus(financial) {
+      const amount = Number(financial.normalized_gurus) || 0;
+      return String(financial.quantification || ``).includes(`Unit Rate`) ? 0 : amount;
+    }
+
     function updateKpis() {
       const totalDecrees = filteredDecrees.length;
       const totalSites = filteredDecrees.reduce((acc, d) => acc + d.locations.length, 0);
-      const totalGurus = filteredDecrees.reduce((acc, d) => acc + (Number(d.financial.normalized_gurus) || 0), 0);
+      const totalGurus = filteredDecrees.reduce((acc, d) => acc + getAggregateClaimGurus(d.financial), 0);
 
       // Modal defendant category
       const defCounts = {};
@@ -2276,10 +1070,9 @@
       }
       if (elGur) elGur.textContent = Math.round(totalGurus).toLocaleString(`en-US`);
       if (elGurSub) {
-        const explicitCount = filteredDecrees.filter(d => d.financial.quantification.includes(`Explicit`)).length;
         elGurSub.textContent = APP_STATE.lang === `tr`
-          ? `${explicitCount} açık meblağ · 1 guruş = 80 akçe`
-          : `${explicitCount} explicit register sums · 1 guruş = 80 akçe`;
+          ? `Arşiv tahminleri dâhil; birim ücretleri hariç · 1 guruş = 80 akçe`
+          : `Includes archival estimates; unit rates excluded · 1 guruş = 80 akçe`;
       }
       if (elAcc) elAcc.textContent = topDef;
       if (elAccSub) {
@@ -2337,6 +1130,55 @@
       `;
     }
 
+    function renderAccessibleMapData() {
+      const body = document.getElementById(`map-data-table-body`);
+      if (!body) return;
+
+      body.replaceChildren();
+      const locations = filteredDecrees.flatMap(d => d.locations.map(loc => ({
+        decreeId: d.decree_id,
+        locationName: loc.location_name,
+        receiverLocation: loc.receiver_location,
+        latitude: loc.lat,
+        longitude: loc.long
+      })));
+
+      if (!locations.length) {
+        const row = document.createElement(`tr`);
+        const cell = document.createElement(`td`);
+        cell.colSpan = 5;
+        cell.textContent = I18N[APP_STATE.lang].mapNoLocations;
+        row.appendChild(cell);
+        body.appendChild(row);
+        return;
+      }
+
+      const formatCoordinate = value => {
+        if (value === null || value === undefined || value === ``) return ``;
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue.toFixed(4) : String(value);
+      };
+
+      locations.forEach(location => {
+        const row = document.createElement(`tr`);
+        const values = [
+          `#${location.decreeId}`,
+          location.locationName,
+          location.receiverLocation,
+          formatCoordinate(location.latitude),
+          formatCoordinate(location.longitude)
+        ];
+
+        values.forEach((value, index) => {
+          const cell = document.createElement(`td`);
+          cell.textContent = String(value ?? ``);
+          if (index >= 3) cell.classList.add(`num`);
+          row.appendChild(cell);
+        });
+        body.appendChild(row);
+      });
+    }
+
     function renderMapMarkers() {
       if (!leafletMap || !markerGroup) return;
       markerGroup.clearLayers();
@@ -2386,7 +1228,10 @@
       APP_STATE.heatmapOn = !APP_STATE.heatmapOn;
       const btn = document.getElementById(`btn-heatmap`);
       const lbl = document.getElementById(`lbl-heatmap`);
-      if (btn) btn.classList.toggle(`active`, APP_STATE.heatmapOn);
+      if (btn) {
+        btn.classList.toggle(`active`, APP_STATE.heatmapOn);
+        btn.setAttribute(`aria-pressed`, String(APP_STATE.heatmapOn));
+      }
       if (lbl) {
         const t = I18N[APP_STATE.lang];
         lbl.textContent = APP_STATE.heatmapOn ? t.heatmapOn : t.heatmapOff;
@@ -2420,6 +1265,9 @@
       const listEl = document.getElementById(`decree-list`);
       const badgeEl = document.getElementById(`list-count-badge`);
       if (!listEl) return;
+      const focusedDecreeId = document.activeElement?.classList?.contains(`decree-item`)
+        ? document.activeElement.dataset.decreeId
+        : null;
 
       if (badgeEl) {
         badgeEl.textContent = APP_STATE.lang === `tr`
@@ -2437,13 +1285,16 @@
         return;
       }
 
-      listEl.innerHTML = filteredDecrees.map(d => {
-        const selected = d.decree_id === APP_STATE.selectedDecreeId ? `selected` : ``;
+      listEl.innerHTML = [...filteredDecrees]
+        .sort((a, b) => b.decree_id - a.decree_id)
+        .map(d => {
+        const isSelected = d.decree_id === APP_STATE.selectedDecreeId;
+        const selected = isSelected ? `selected` : ``;
         const amt = d.financial.normalized_gurus > 0
           ? `${d.financial.normalized_gurus.toLocaleString(`en-US`)} gr.`
           : `Qual.`;
         return `
-          <button type="button" class="decree-item ${selected}" role="listitem" onclick="selectDecree(${d.decree_id}, true)">
+          <button type="button" class="decree-item ${selected}" data-decree-id="${d.decree_id}" aria-pressed="${isSelected}" onclick="selectDecree(${d.decree_id}, true)">
             <div class="decree-item-top">
               <span class="decree-id-badge">Hüküm #${d.decree_id} · ${d.hierarchy.kaza}</span>
               <span class="stamp-tag">${d.std_complaint}</span>
@@ -2456,6 +1307,12 @@
           </button>
         `;
       }).join(``);
+
+      if (focusedDecreeId) {
+        const focusedButton = Array.from(listEl.querySelectorAll(`.decree-item`))
+          .find(button => button.dataset.decreeId === focusedDecreeId);
+        focusedButton?.focus();
+      }
     }
 
     function selectDecree(decreeId, flyTo) {
@@ -2549,9 +1406,54 @@
       chartInstances = {};
     }
 
+    function renderAccessibleDataTable(containerId, captionText, headers, rows) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const table = document.createElement(`table`);
+      table.className = `data-table`;
+
+      const caption = document.createElement(`caption`);
+      caption.textContent = captionText;
+      table.appendChild(caption);
+
+      const thead = document.createElement(`thead`);
+      const headerRow = document.createElement(`tr`);
+      headers.forEach(headerText => {
+        const header = document.createElement(`th`);
+        header.scope = `col`;
+        header.textContent = headerText;
+        headerRow.appendChild(header);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement(`tbody`);
+      rows.forEach(values => {
+        const row = document.createElement(`tr`);
+        values.forEach(value => {
+          const cell = document.createElement(`td`);
+          cell.textContent = String(value ?? ``);
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+      if (!rows.length) {
+        const row = document.createElement(`tr`);
+        const cell = document.createElement(`td`);
+        cell.colSpan = headers.length;
+        cell.textContent = I18N[APP_STATE.lang].chartNoData;
+        row.appendChild(cell);
+        tbody.appendChild(row);
+      }
+      table.appendChild(tbody);
+      container.replaceChildren(table);
+    }
+
     function renderAnalyticsCharts() {
-      if (typeof Chart === `undefined`) return;
       destroyCharts();
+      const canRenderCharts = typeof Chart !== `undefined`;
+      const chartText = I18N[APP_STATE.lang];
 
       const textCol = getToken(`--on-surface`);
       const mutedCol = getToken(`--on-surface-variant`);
@@ -2565,12 +1467,18 @@
       // Chart 1: Financial Claims (Normalized Guruş) by Complaint Category
       const catSums = {};
       filteredDecrees.forEach(d => {
-        catSums[d.std_complaint] = (catSums[d.std_complaint] || 0) + (d.financial.normalized_gurus || 0);
+        catSums[d.std_complaint] = (catSums[d.std_complaint] || 0) + getAggregateClaimGurus(d.financial);
       });
       const catEntries = Object.entries(catSums).sort((a, b) => b[1] - a[1]);
+      renderAccessibleDataTable(
+        `chart-financial-data`,
+        chartText.chartDataCaptions[0],
+        chartText.chartDataHeaders[0],
+        catEntries.map(([category, amount]) => [category, Math.round(amount)])
+      );
 
       const ctx1 = document.getElementById(`chart-financial-cat`);
-      if (ctx1) {
+      if (ctx1 && canRenderCharts) {
         chartInstances.c1 = new Chart(ctx1, {
           type: `bar`,
           data: {
@@ -2602,9 +1510,15 @@
         defCounts[k] = (defCounts[k] || 0) + 1;
       });
       const defEntries = Object.entries(defCounts).sort((a, b) => b[1] - a[1]);
+      renderAccessibleDataTable(
+        `chart-defendants-data`,
+        chartText.chartDataCaptions[1],
+        chartText.chartDataHeaders[1],
+        defEntries
+      );
 
       const ctx2 = document.getElementById(`chart-defendants`);
-      if (ctx2) {
+      if (ctx2 && canRenderCharts) {
         chartInstances.c2 = new Chart(ctx2, {
           type: `doughnut`,
           data: {
@@ -2638,9 +1552,15 @@
         eyaletStats[e].sites += d.locations.length;
       });
       const eyaletEntries = Object.entries(eyaletStats).sort((a, b) => b[1].decrees - a[1].decrees);
+      renderAccessibleDataTable(
+        `chart-eyalets-data`,
+        chartText.chartDataCaptions[2],
+        chartText.chartDataHeaders[2],
+        eyaletEntries.map(([eyalet, stats]) => [eyalet, stats.decrees, stats.sites])
+      );
 
       const ctx3 = document.getElementById(`chart-eyalets`);
-      if (ctx3) {
+      if (ctx3 && canRenderCharts) {
         chartInstances.c3 = new Chart(ctx3, {
           type: `bar`,
           data: {
@@ -2677,9 +1597,20 @@
         const sumB = b[1].male + b[1].group + b[1].female;
         return sumB - sumA;
       }).slice(0, 7);
+      renderAccessibleDataTable(
+        `chart-resolutions-data`,
+        chartText.chartDataCaptions[3],
+        chartText.chartDataHeaders[3],
+        resEntries.map(([resolution, counts]) => [
+          resolution,
+          counts.male,
+          counts.group,
+          counts.female
+        ])
+      );
 
       const ctx4 = document.getElementById(`chart-resolutions`);
-      if (ctx4) {
+      if (ctx4 && canRenderCharts) {
         chartInstances.c4 = new Chart(ctx4, {
           type: `bar`,
           data: {
@@ -2726,22 +1657,22 @@
       },
       {
         key: `defendants_table`,
-        tr: `Şikâyet Edilenler (Yeni Tablo 4)`,
+        tr: `Şikâyet Edilenler`,
         desc: `Accused officials and private actors (defendant_id PK, decree_id FK, defendant_name, category, status)`
       },
       {
         key: `financial_claims_table`,
-        tr: `Parasal Miktarlar (Yeni Tablo 5)`,
+        tr: `Parasal Miktarlar`,
         desc: `Guruş–Akçe financial claims & archival coding (claim_id PK, decree_id FK, normalized_gurus, claim_type)`
       },
       {
         key: `admin_hierarchy_table`,
-        tr: `Eyalet–Sancak–Kaza–Karye (Yeni Tablo 6)`,
+        tr: `Eyalet–Sancak–Kaza–Karye`,
         desc: `Ottoman administrative hierarchy grounded in Yer Adları Sözlüğü (hier_id PK, decree_id FK, eyalet, sancak, kaza)`
       },
       {
         key: `resolutions_table`,
-        tr: `Dîvân Kararları (Yeni Tablo 7)`,
+        tr: `Dîvân Kararları `,
         desc: `Imperial Council legal directives and enforcement authorities (resolution_id PK, decree_id FK, directive_type)`
       }
     ];
@@ -2828,7 +1759,9 @@
     function switchView(viewName) {
       APP_STATE.activeView = viewName;
       document.querySelectorAll(`.tab-btn`).forEach(btn => {
-        btn.classList.toggle(`active`, btn.dataset.view === viewName);
+        const isActive = btn.dataset.view === viewName;
+        btn.classList.toggle(`active`, isActive);
+        btn.setAttribute(`aria-pressed`, String(isActive));
       });
       document.querySelectorAll(`.view-section`).forEach(sec => {
         sec.classList.toggle(`active`, sec.id === `view-${viewName}`);
@@ -2852,7 +1785,9 @@
       document.documentElement.setAttribute(`data-theme`, APP_STATE.theme);
       const t = I18N[APP_STATE.lang];
       const lbl = document.getElementById(`lbl-theme`);
+      const btn = document.getElementById(`btn-theme`);
       if (lbl) lbl.textContent = APP_STATE.theme === `dark` ? t.themeLight : t.themeDark;
+      if (btn) btn.setAttribute(`aria-pressed`, String(APP_STATE.theme === `dark`));
       renderLegend();
       updateMapThemeStyles();
       if (APP_STATE.activeView === `analytics`) {
@@ -2868,6 +1803,7 @@
 
     function applyLanguageDom() {
       const t = I18N[APP_STATE.lang];
+      document.documentElement.lang = APP_STATE.lang === `tr` ? `tr` : `en`;
       const mapIds = {
         'ui-kicker': t.kicker,
         'ui-main-title': t.title,
@@ -2890,6 +1826,10 @@
         'lbl-range': t.lblRange,
         'lbl-reset': t.lblReset,
         'ui-map-title': t.mapTitle,
+        'map-accessible-description': t.mapAccessibleDescription,
+        'map-data-summary': t.mapDataSummary,
+        'map-country-labels': t.mapCountryLabels,
+        'map-table-caption': t.mapTableCaption,
         'lbl-heatmap': APP_STATE.heatmapOn ? t.heatmapOn : t.heatmapOff,
         'lbl-fit-map': t.fitMap,
         'ui-list-title': t.listTitle,
@@ -2900,8 +1840,22 @@
         const el = document.getElementById(id);
         if (el) el.textContent = txt;
       });
+      document.getElementById(`filter-min-gurus`)
+        ?.setAttribute(`aria-label`, t.lblMinGurus);
+      document.getElementById(`filter-max-gurus`)
+        ?.setAttribute(`aria-label`, t.lblMaxGurus);
+      t.mapTableHeaders.forEach((text, index) => {
+        const header = document.getElementById(`map-table-header-${index + 1}`);
+        if (header) header.textContent = text;
+      });
+      t.chartDataSummaries.forEach((text, index) => {
+        const summary = document.getElementById(`chart-data-summary-${index + 1}`);
+        if (summary) summary.textContent = text;
+      });
       updateKpis();
       renderDecreeList();
+      renderAccessibleMapData();
+      if (APP_STATE.activeView === `analytics`) renderAnalyticsCharts();
       const statusEl = document.getElementById(`filter-status-text`);
       if (statusEl) {
         statusEl.textContent = APP_STATE.lang === `tr`
@@ -3035,7 +1989,7 @@
     // 16. BOOTSTRAP
     // =========================================================================
     async function loadDashboardTables() {
-      const response = await fetch(`./dashboard_data.json`);
+      const response = await fetch(`./data/processed/dashboard_data.json`);
       if (!response.ok) {
         throw new Error(`Data request failed (${response.status})`);
       }
@@ -3096,6 +2050,3 @@
         window.notebookAppApi.notifyAppReady();
       }
     });
-  </script>
-</body>
-</html>
